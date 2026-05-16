@@ -12,7 +12,7 @@
 window.APP_CONFIG = {
 
     /* ── Supabase ─────────────────────────────────────── */
-    supabaseUrl:  'https://XXXXXXXXXXXXXXXX.supabase.co',
+    supabaseUrl:  'https://zuwaotncezfejrhmfbeo.supabase.co',
     supabaseAnon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6...',   /* anon/public key */
 
     /* ── Stripe Price IDs ─────────────────────────────── */
