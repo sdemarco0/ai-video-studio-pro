@@ -12,8 +12,8 @@
 window.APP_CONFIG = {
 
     /* ── Supabase ─────────────────────────────────────── */
-    supabaseUrl:  'https://XXXXXXXXXXXXXXXX.supabase.co',
-    supabaseAnon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6...',   /* anon/public key */
+    supabaseUrl:  'https://zuwaotncezfejrhmfbeo.supabase.co,
+    supabaseAnon: 'sb_publishable_CAg9TmAmYgT0a_6v1z075Q_YmhGUQ-R,   /* anon/public key */
 
     /* ── Stripe Price IDs ─────────────────────────────── */
     stripePriceIds: {
