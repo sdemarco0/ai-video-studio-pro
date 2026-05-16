@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "functions": {
+    "api/replicate.js":        { "runtime": "edge" },
+    "api/lipsync.js":          { "runtime": "edge" },
+    "api/stripe-checkout.js":  { "runtime": "edge" },
+    "api/stripe-webhook.js":   { "runtime": "edge" }
+  },
+  "routes": [
+    { "src": "/api/(.*)", "dest": "/api/$1" },
+    { "src": "/(.*)",     "dest": "/$1"     }
+  ],
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        { "key": "X-Content-Type-Options",  "value": "nosniff" },
+        { "key": "X-Frame-Options",          "value": "DENY" },
+        { "key": "Referrer-Policy",          "value": "strict-origin-when-cross-origin" }
+      ]
+    }
+  ]
+}
