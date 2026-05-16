@@ -12,8 +12,8 @@
 window.APP_CONFIG = {
 
     /* ── Supabase ─────────────────────────────────────── */
-    supabaseUrl:  'https://zuwaotncezfejrhmfbeo.supabase.co,
-    supabaseAnon: 'sb_publishable_CAg9TmAmYgT0a_6v1z075Q_YmhGUQ-R,   /* anon/public key */
+    supabaseUrl:  'https://XXXXXXXXXXXXXXXX.supabase.co',
+    supabaseAnon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6...',   /* anon/public key */
 
     /* ── Stripe Price IDs ─────────────────────────────── */
     stripePriceIds: {
@@ -23,5 +23,9 @@ window.APP_CONFIG = {
 
     /* ── Impostazioni app ────────────────────────────── */
     appName:      'AI Video Studio Pro',
-    freeCredits:  3    /* video gratuiti per i nuovi utenti */
+    freeCredits:  3,   /* video gratuiti per i nuovi utenti */
+
+    /* ── Admin — inserisci la TUA email ─────────────── */
+    /* Solo questo utente vede il menu Impostazioni API  */
+    adminEmail:   'LA-TUA-EMAIL@gmail.com'
 };

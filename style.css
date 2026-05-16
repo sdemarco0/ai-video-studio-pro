@@ -407,7 +407,7 @@ body {
 /* ============================================================
    WORKSPACE
    ============================================================ */
-.workspace { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+.workspace { flex: 1; display: flex; flex-direction: column; overflow-y: auto; min-height: 0; }
 
 /* ---------- Toolbar ---------- */
 .toolbar {
@@ -442,10 +442,12 @@ body {
 .canvas-area {
     flex: 1;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
-    padding: 32px;
+    padding: 20px;
     position: relative;
+    overflow-y: auto;
+    min-height: 300px;
 }
 .canvas-wrapper {
     width: 100%;
@@ -835,7 +837,8 @@ body {
     display: none;
     align-items: center;
     justify-content: center;
-    padding: 40px;
+    padding: 20px;
+    overflow-y: auto;
 }
 .modal-bg.active { display: flex; }
 .modal {
@@ -844,14 +847,18 @@ body {
     border-radius: 20px;
     width: 100%;
     max-width: 480px;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
     animation: modalIn 0.3s ease;
+    margin: auto;
 }
 .modal-lg { max-width: 720px; }
-.modal-head { padding: 24px 24px 0; }
+.modal-head { padding: 20px 24px 0; flex-shrink: 0; }
 .modal-title { font-size: 20px; font-weight: 700; }
-.modal-body { padding: 20px 24px; }
-.modal-foot { padding: 16px 24px 24px; display: flex; justify-content: flex-end; gap: 12px; }
+.modal-body { padding: 16px 24px; overflow-y: auto; flex: 1; }
+.modal-foot { padding: 12px 24px 20px; display: flex; justify-content: flex-end; gap: 12px; flex-shrink: 0; border-top: 1px solid var(--border); }
 
 /* ============================================================
    PROCESSING OVERLAY

@@ -1,16 +1,21 @@
 /* ============================================================
    AI Video Studio Pro — auth.js
-   Login/Register con Supabase (reale) + fallback locale (demo).
-   Se Supabase non è configurato in config.js, funziona
-   esattamente come prima in modalità demo locale.
    ============================================================ */
 
-/* ---------- Determina se Supabase è disponibile ---------- */
+/* Email dell'amministratore — le Impostazioni API appaiono SOLO a questo utente */
+var ADMIN_EMAIL = window.APP_CONFIG && window.APP_CONFIG.adminEmail
+    ? window.APP_CONFIG.adminEmail
+    : 'sdemarco0@gmail.com'; /* <-- metti qui la tua email */
+
 function hasSupabase() {
     var cfg = window.APP_CONFIG;
     return cfg &&
         cfg.supabaseUrl  && !cfg.supabaseUrl.includes('XXXXXXXX') &&
         cfg.supabaseAnon && !cfg.supabaseAnon.includes('eyJhbGciOiJIUzI1NiIsInR5cCI6...');
+}
+
+function isAdmin() {
+    return state.user && state.user.email === ADMIN_EMAIL;
 }
 
 /* ---------- Login Tab Switch ---------- */
@@ -33,12 +38,19 @@ async function doLogin() {
 
     try {
         if (hasSupabase()) {
-            /* Auth reale Supabase */
             var user = await sbSignIn(email, password);
-            state.user = { name: user.user_metadata?.full_name || email.split('@')[0], email: user.email, id: user.id, plan: 'free' };
+            state.user = {
+                name:  user.user_metadata && user.user_metadata.full_name
+                    ? user.user_metadata.full_name
+                    : email.split('@')[0],
+                email: user.email,
+                id:    user.id,
+                plan:  'free',
+                avatar: user.user_metadata && user.user_metadata.avatar_url
+                    ? user.user_metadata.avatar_url : null
+            };
         } else {
-            /* Fallback demo */
-            state.user = { name: email.split('@')[0], email: email, id: 'demo_' + Date.now(), plan: 'free' };
+            state.user = { name: email.split('@')[0], email: email, id: 'demo_' + Date.now(), plan: 'free', avatar: null };
         }
         await showApp();
         toast('success', 'Bentornato!', 'Ciao ' + state.user.name);
@@ -68,8 +80,7 @@ async function doRegister() {
     try {
         if (hasSupabase()) {
             var user = await sbSignUp(email, password, name);
-            state.user = { name, email, id: user.id, plan: 'free' };
-            /* Crea riga crediti per il nuovo utente */
+            state.user = { name, email, id: user.id, plan: 'free', avatar: null };
             var sb = getSupabase();
             if (sb) {
                 await sb.from('user_credits').insert({
@@ -79,7 +90,7 @@ async function doRegister() {
                 });
             }
         } else {
-            state.user = { name, email, id: 'demo_' + Date.now(), plan: 'free' };
+            state.user = { name, email, id: 'demo_' + Date.now(), plan: 'free', avatar: null };
         }
         await showApp();
         toast('success', 'Account creato!', 'Benvenuto ' + name + ' — hai 3 video gratis');
@@ -94,12 +105,34 @@ async function doRegister() {
 /* ---------- Social Login ---------- */
 async function socialLogin(provider) {
     var sb = getSupabase();
-    if (!sb) { toast('info', provider, 'Configura Supabase per il login social'); return; }
-    var { error } = await sb.auth.signInWithOAuth({
-        provider: provider.toLowerCase(),
-        options:  { redirectTo: window.location.origin }
-    });
-    if (error) toast('error', 'Errore login', error.message);
+    if (!sb) {
+        toast('error', 'Configurazione mancante', 'Supabase non configurato — usa email e password');
+        return;
+    }
+
+    /* Per Google: devi abilitare il provider Google in Supabase
+       Dashboard Supabase → Authentication → Providers → Google → Enable */
+    var providerKey = provider.toLowerCase();
+    try {
+        var result = await sb.auth.signInWithOAuth({
+            provider: providerKey,
+            options: {
+                redirectTo: window.location.origin,
+                queryParams: providerKey === 'google' ? {
+                    access_type: 'offline',
+                    prompt: 'consent'
+                } : {}
+            }
+        });
+        if (result.error) throw result.error;
+        /* Il redirect avviene automaticamente — Supabase reindirizza alla pagina */
+    } catch (e) {
+        if (e.message && e.message.includes('provider is not enabled')) {
+            toast('error', 'Google Login', 'Abilita Google in Supabase → Authentication → Providers');
+        } else {
+            toast('error', 'Errore login ' + provider, e.message || 'Errore sconosciuto');
+        }
+    }
 }
 
 /* ---------- Show App ---------- */
@@ -113,10 +146,15 @@ async function showApp() {
         document.getElementById('userAvatar').textContent = state.user.name.charAt(0).toUpperCase();
     }
 
+    /* Mostra voce Impostazioni SOLO all'admin */
+    var settingsItem = document.getElementById('menuItemSettings');
+    if (settingsItem) {
+        settingsItem.style.display = isAdmin() ? 'flex' : 'none';
+    }
+
     renderProjects();
     updateStorageDisplay();
 
-    /* Carica crediti e progetti da Supabase se disponibile */
     if (hasSupabase()) {
         await loadAndShowCredits();
         var projects = await sbGetProjects();
@@ -162,17 +200,103 @@ function toggleUserMenu() {
 async function showProfile() {
     document.getElementById('userMenu').classList.remove('active');
     document.getElementById('profileModal').classList.add('active');
+
     if (state.user) {
         document.getElementById('profileName').textContent  = state.user.name;
         document.getElementById('profileEmail').textContent = state.user.email;
         document.getElementById('editName').value  = state.user.name;
         document.getElementById('editEmail').value = state.user.email;
+
+        /* Foto profilo */
+        var avatarEl = document.getElementById('profileAvatarImg');
+        if (avatarEl) {
+            if (state.user.avatar) {
+                avatarEl.src = state.user.avatar;
+                avatarEl.style.display = 'block';
+                document.getElementById('profileAvatarPlaceholder').style.display = 'none';
+            } else {
+                avatarEl.style.display = 'none';
+                document.getElementById('profileAvatarPlaceholder').style.display = 'flex';
+            }
+        }
     }
+
     var videos = 0, images = 0;
     state.generatedContent.forEach(function (i) { if (i.type === 'video') videos++; else images++; });
     document.getElementById('statProjects').textContent = state.projects.length;
     document.getElementById('statVideos').textContent   = videos;
     document.getElementById('statImages').textContent   = images;
+
+    /* Carica ultime 6 fatture da Stripe via Supabase (stub — mostra placeholder se non configurato) */
+    loadInvoices();
+}
+
+async function loadInvoices() {
+    var list = document.getElementById('invoiceList');
+    if (!list) return;
+
+    /* Se Supabase non configurato, mostra messaggio */
+    if (!hasSupabase()) {
+        list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:12px;">Nessuna fattura disponibile</div>';
+        return;
+    }
+
+    /* Prova a leggere fatture dalla tabella invoices su Supabase */
+    var sb   = getSupabase();
+    var user = await sbGetUser();
+    if (!sb || !user) {
+        list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:12px;">Nessuna fattura disponibile</div>';
+        return;
+    }
+
+    try {
+        var { data } = await sb
+            .from('invoices')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(6);
+
+        if (!data || data.length === 0) {
+            list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:12px;">Nessuna fattura ancora</div>';
+            return;
+        }
+
+        list.innerHTML = data.map(function (inv) {
+            return '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">' +
+                '<div>' +
+                    '<div style="font-size:13px;font-weight:600;">' + new Date(inv.created_at).toLocaleDateString('it-IT') + '</div>' +
+                    '<div style="font-size:11px;color:var(--text-3);">€' + (inv.amount / 100).toFixed(2) + ' · ' + inv.plan + '</div>' +
+                '</div>' +
+                '<a href="' + (inv.invoice_url || '#') + '" target="_blank" ' +
+                   'style="font-size:11px;color:var(--accent);text-decoration:none;padding:4px 10px;border:1px solid var(--accent);border-radius:6px;">⬇ Scarica</a>' +
+            '</div>';
+        }).join('');
+    } catch (e) {
+        list.innerHTML = '<div style="font-size:12px;color:var(--text-3);text-align:center;padding:12px;">Errore caricamento fatture</div>';
+    }
+}
+
+/* Carica foto profilo dal file */
+function handleProfilePhoto(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    var reader = new FileReader();
+    reader.onload = function (ev) {
+        state.user.avatar = ev.target.result;
+        var avatarEl = document.getElementById('profileAvatarImg');
+        var placeholder = document.getElementById('profileAvatarPlaceholder');
+        if (avatarEl) {
+            avatarEl.src = ev.target.result;
+            avatarEl.style.display = 'block';
+        }
+        if (placeholder) placeholder.style.display = 'none';
+        /* Aggiorna anche l'avatar nella navbar */
+        document.getElementById('userAvatar').innerHTML =
+            '<img src="' + ev.target.result + '" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">';
+        toast('success', 'Foto aggiornata', '');
+    };
+    reader.readAsDataURL(file);
 }
 
 function closeProfileModal() { document.getElementById('profileModal').classList.remove('active'); }
@@ -182,14 +306,23 @@ function saveProfile() {
         state.user.name  = document.getElementById('editName').value;
         state.user.email = document.getElementById('editEmail').value;
         document.getElementById('userName').textContent   = state.user.name;
-        document.getElementById('userAvatar').textContent = state.user.name.charAt(0).toUpperCase();
+        if (!state.user.avatar) {
+            document.getElementById('userAvatar').textContent = state.user.name.charAt(0).toUpperCase();
+        }
     }
     closeProfileModal();
     toast('success', 'Profilo aggiornato', '');
 }
 
-/* ---------- Settings / Billing ---------- */
-function showSettings() { document.getElementById('userMenu').classList.remove('active'); showApiModal(); }
+/* ---------- Settings — solo admin ---------- */
+function showSettings() {
+    document.getElementById('userMenu').classList.remove('active');
+    if (!isAdmin()) {
+        toast('error', 'Accesso negato', 'Solo l\'amministratore può accedere alle impostazioni');
+        return;
+    }
+    showApiModal();
+}
 
 function showBilling() {
     document.getElementById('userMenu').classList.remove('active');
@@ -203,10 +336,14 @@ document.addEventListener('DOMContentLoaded', async function () {
     var user = await sbGetUser();
     if (user) {
         state.user = {
-            name:  user.user_metadata?.full_name || user.email.split('@')[0],
-            email: user.email,
-            id:    user.id,
-            plan:  'free'
+            name:   user.user_metadata && user.user_metadata.full_name
+                ? user.user_metadata.full_name
+                : user.email.split('@')[0],
+            email:  user.email,
+            id:     user.id,
+            plan:   'free',
+            avatar: user.user_metadata && user.user_metadata.avatar_url
+                ? user.user_metadata.avatar_url : null
         };
         await showApp();
     }
