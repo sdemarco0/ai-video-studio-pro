@@ -1,11 +1,5 @@
 {
   "version": 2,
-  "functions": {
-    "api/replicate.js":        { "runtime": "edge" },
-    "api/lipsync.js":          { "runtime": "edge" },
-    "api/stripe-checkout.js":  { "runtime": "edge" },
-    "api/stripe-webhook.js":   { "runtime": "edge" }
-  },
   "routes": [
     { "src": "/api/(.*)", "dest": "/api/$1" },
     { "src": "/(.*)",     "dest": "/$1"     }
