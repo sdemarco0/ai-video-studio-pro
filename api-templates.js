@@ -1,112 +1,96 @@
 /* ============================================================
    AI Video Studio Pro — api-templates.js
-   API Key management + Templates
-
-   ARCHITETTURA COSTI MINIMI:
-   ─ Immagini  → HF Inference API (FLUX.1-schnell) — FREE tier mensile
-   ─ Video     → Replicate (CogVideoX-2B) — ~$0.003–0.006/video
-                 oppure Replicate (LTX-Video) — ~$0.01/video (qualità migliore)
-
-   L'utente finale porta le proprie chiavi → i costi ricadono su di lui,
-   non sull'operatore della piattaforma.
+   Modal API semplificato — solo HF Token (gratis)
+   Rimosso: Replicate, ElevenLabs, Sync.so
    ============================================================ */
 
-/* ============================================================
-   API KEY MODAL
-   ============================================================ */
 function showApiModal() {
-    document.getElementById('apiModal').classList.add('active');
-    if (state.apiKeys.hf)        document.getElementById('hfKey').value        = state.apiKeys.hf;
-    if (state.apiKeys.replicate) document.getElementById('replicateKey').value = state.apiKeys.replicate;
-    if (state.apiKeys.eleven)    document.getElementById('elevenKey').value     = state.apiKeys.eleven;
-    if (state.apiKeys.sync)      document.getElementById('syncKey').value       = state.apiKeys.sync;
+  document.getElementById('apiModal').classList.add('active');
+  if (state.apiKeys.hf) document.getElementById('hfKey').value = state.apiKeys.hf;
 }
 
 function closeApiModal() {
-    document.getElementById('apiModal').classList.remove('active');
+  document.getElementById('apiModal').classList.remove('active');
 }
 
 function saveApiKeys() {
-    state.apiKeys = {
-        hf:     (document.getElementById('hfKey').value    || '').trim(),
-        eleven: (document.getElementById('elevenKey').value || '').trim(),
-        sync:   (document.getElementById('syncKey').value   || '').trim()
-    };
+  var hfKey = (document.getElementById('hfKey').value || '').trim();
+  state.apiKeys.hf = hfKey;
 
-    var badge     = document.getElementById('apiStatusBadge');
-    var badgeText = document.getElementById('apiStatusText');
+  var badge     = document.getElementById('apiStatusBadge');
+  var badgeText = document.getElementById('apiStatusText');
 
-    if (state.apiKeys.hf) {
-        badge.className       = 'api-status ok';
-        badgeText.textContent = 'HF Attivo';
-    } else {
-        badge.className       = 'api-status warn';
-        badgeText.textContent = 'Demo Mode';
-    }
-
-    closeApiModal();
-    toast('success', 'API Salvate',
-        state.apiKeys.hf ? 'HF pronto — immagini gratuite attive' : 'Inserisci HF Token per le immagini');
+  if (hfKey) {
+    badge.className       = 'api-status ok';
+    badgeText.textContent = 'HF Attivo';
+    toast('success', '✅ Token salvato', 'Hugging Face attivo — immagini e video pronti');
+  } else {
+    badge.className       = 'api-status warn';
+    badgeText.textContent = 'Token mancante';
+    toast('error', 'Token mancante', 'Inserisci il tuo token HF per generare contenuti');
+  }
+  closeApiModal();
 }
 
 /* ============================================================
    TEMPLATES
    ============================================================ */
 function showTemplates() {
-    document.getElementById('templateModal').classList.add('active');
+  document.getElementById('templateModal').classList.add('active');
 }
 
 function closeTemplateModal() {
-    document.getElementById('templateModal').classList.remove('active');
+  document.getElementById('templateModal').classList.remove('active');
 }
 
 var TEMPLATES = {
-    news:     {
-        char:   'Professional news anchor, elegant suit, serious expression, 35 years old',
-        dialog: 'Welcome to tonight\'s news. Today we\'re covering...',
-        env:    'Professional TV studio with blue LED screens and desk',
-        moves:  'Sits at desk, looks directly at camera, minimal gestures'
-    },
-    tutorial: {
-        char:   'Friendly teacher, 30 years old, glasses, casual sweater, warm smile',
-        dialog: 'In this tutorial we\'ll learn how to use this platform step by step...',
-        env:    'Desk with monitor, bookshelf background, natural light',
-        moves:  'Gestures with hands, points at screen, smiles'
-    },
-    promo:    {
-        char:   'Enthusiastic salesperson, 40 years old, blue suit, wide smile',
-        dialog: 'Discover our special offer! Only for today...',
-        env:    'Colorful background with dynamic graphics and lights',
-        moves:  'Walks back and forth, points at product, raises hands'
-    },
-    vlog:     {
-        char:   'Young content creator, 25 years old, casual style, energetic',
-        dialog: 'Hey guys! Today I\'m taking you to this amazing place...',
-        env:    'Bedroom with RGB lights, posters on the wall',
-        moves:  'Moves freely, expressive gestures, laughs'
-    },
-    product:  {
-        char:   'Professional model, well-groomed hands, neutral expression',
-        dialog: 'This revolutionary product will change your life...',
-        env:    'Minimal white background, glass table, soft lighting',
-        moves:  'Shows product from different angles, rotates it'
-    },
-    gaming:   {
-        char:   'Gamer, 22 years old, headset, tech shirt, focused expression',
-        dialog: 'Guys, today we\'re trying out this insane new game!',
-        env:    'Gaming setup with RGB LEDs, multiple monitors, gaming posters',
-        moves:  'Reacts to game, gestures with controller, cheers'
-    }
+  news: {
+    char:   'Presentatore professionista, completo elegante, espressione seria, 35 anni',
+    dialog: 'Benvenuti al telegiornale. Oggi vi parliamo di...',
+    env:    'Studio TV professionale con schermi LED blu e scrivania',
+    moves:  'Seduto alla scrivania, guarda in camera, gesti minimi'
+  },
+  tutorial: {
+    char:   'Insegnante simpatico, 30 anni, occhiali, maglione casual, sorriso caldo',
+    dialog: 'In questo tutorial impareremo passo passo come usare la piattaforma...',
+    env:    'Scrivania con monitor, libreria sullo sfondo, luce naturale',
+    moves:  'Gesticola con le mani, indica lo schermo, sorride'
+  },
+  promo: {
+    char:   'Venditore entusiasta, 40 anni, giacca blu, sorriso ampio',
+    dialog: 'Scopri la nostra offerta speciale! Solo per oggi...',
+    env:    'Sfondo colorato con grafiche dinamiche e luci',
+    moves:  'Cammina avanti e indietro, indica il prodotto, alza le mani'
+  },
+  vlog: {
+    char:   'Content creator giovane, 25 anni, stile casual, energico',
+    dialog: 'Ciao ragazzi! Oggi vi porto in questo posto fantastico...',
+    env:    'Camera con luci RGB, poster sul muro',
+    moves:  'Si muove liberamente, gesti espressivi, ride'
+  },
+  product: {
+    char:   'Modello professionista, mani curate, espressione neutra',
+    dialog: 'Questo prodotto rivoluzionario cambierà la tua vita...',
+    env:    'Sfondo bianco minimale, tavolo di vetro, luce soffusa',
+    moves:  'Mostra il prodotto da diverse angolazioni, lo ruota'
+  },
+  gaming: {
+    char:   'Gamer, 22 anni, cuffie, maglietta tech, espressione concentrata',
+    dialog: 'Ragazzi, oggi proviamo questo gioco assurdo!',
+    env:    'Gaming setup con LED RGB, monitor multipli, poster gaming',
+    moves:  'Reagisce al gioco, gesticola con il controller, esulta'
+  }
 };
 
 function loadTemplate(type) {
-    closeTemplateModal();
-    var t = TEMPLATES[type];
-    if (!t) return;
-    document.getElementById('videoCharPrompt').value   = t.char;
-    document.getElementById('videoDialogPrompt').value = t.dialog;
-    document.getElementById('videoEnvPrompt').value    = t.env;
-    document.getElementById('videoMovePrompt').value   = t.moves;
-    switchAIPanel('video');
-    toast('success', 'Template caricato', type.charAt(0).toUpperCase() + type.slice(1));
+  closeTemplateModal();
+  var t = TEMPLATES[type];
+  if (!t) return;
+  if (document.getElementById('videoCharPrompt'))   document.getElementById('videoCharPrompt').value   = t.char;
+  if (document.getElementById('videoDialogPrompt')) document.getElementById('videoDialogPrompt').value = t.dialog;
+  if (document.getElementById('videoEnvPrompt'))    document.getElementById('videoEnvPrompt').value    = t.env;
+  if (document.getElementById('videoMovePrompt'))   document.getElementById('videoMovePrompt').value   = t.moves;
+  /* Switch al pannello video */
+  switchAIPanel('video');
+  toast('success', '🎨 Template caricato', type.charAt(0).toUpperCase() + type.slice(1) + ' — premi Genera Video');
 }
