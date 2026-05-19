@@ -923,15 +923,15 @@ async function generateImage(){
   var style=(document.getElementById('imgStyle')?.value||'realistic');
   var hfToken=state.apiKeys.hf;
   if(!prompt){toast('err','Prompt mancante','Descrivi l\'immagine che vuoi creare');return;}
-  if(!hfToken){toast('err','Token HF mancante','Clicca su 🔑 API e inserisci il tuo token Hugging Face');return;}
   var styleMap={realistic:'photorealistic, professional photo, sharp details, 8K',cinematic:'cinematic photography, film grain, dramatic lighting',digital:'digital art, concept art, artstation',otros:'high quality, detailed'};
   var fullPrompt=prompt+', '+(styleMap[style]||'high quality');
   var btn=document.querySelector('[onclick="generateImage()"]'); if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando...';}
   toast('inf','🎨 FLUX.1-schnell','Generazione immagine in corso...');
   try{
-    var res=await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',{method:'POST',headers:{'Authorization':'Bearer '+hfToken,'Content-Type':'application/json','X-Wait-For-Model':'true'},body:JSON.stringify({inputs:fullPrompt,parameters:{num_inference_steps:4,guidance_scale:0}})});
-    if(!res.ok){ if(res.status===503){toast('inf','Modello in avvio','Riprova tra 20 secondi');return;} throw new Error(await res.text()); }
-    var blob=await res.blob(); var url=URL.createObjectURL(blob);
+    var res=await fetch('/api/hf-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:fullPrompt,steps:4})});
+    var d=await res.json();
+    if(!res.ok||d.status==='loading'){if(d.status==='loading'){toast('inf','Modello in avvio','Riprova tra 20 secondi');return;} throw new Error(d.error||'Errore');}
+    var blob=base64ToBlob(d.image_base64,d.content_type||'image/jpeg'); var url=URL.createObjectURL(blob);
     var box=document.getElementById('imgPreviewBox'); if(box) box.innerHTML='<img src="'+url+'" style="width:100%;border-radius:8px">';
     showMainPreview(url,'image'); addToGallery(url,'image',prompt); await sbDeductCredit();
     toast('ok','✅ Immagine generata!','FLUX.1-schnell');
@@ -973,9 +973,9 @@ async function generateAvatar(){
   var full='Professional portrait photo of '+prompt+', photorealistic, sharp eyes, perfect face, studio lighting, 8K, looking at camera';
   var btn=document.querySelector('[onclick="generateAvatar()"]'); if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando...';}
   try{
-    var res=await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',{method:'POST',headers:{'Authorization':'Bearer '+hfToken,'Content-Type':'application/json','X-Wait-For-Model':'true'},body:JSON.stringify({inputs:full,parameters:{num_inference_steps:4,guidance_scale:0}})});
-    if(!res.ok) throw new Error(await res.text());
-    var blob=await res.blob(); var url=URL.createObjectURL(blob);
+    var res=await fetch('/api/hf-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:full,steps:4})});
+    var d=await res.json(); if(!res.ok||!d.image_base64) throw new Error(d.error||'Errore');
+    var blob=base64ToBlob(d.image_base64,d.content_type||'image/jpeg'); var url=URL.createObjectURL(blob);
     showMainPreview(url,'image'); addToGallery(url,'image','Avatar: '+prompt); await sbDeductCredit();
     toast('ok','✅ Avatar generato!','Ora puoi usarlo con il LipSync');
   }catch(e){toast('err','Errore avatar',e.message);}
@@ -989,9 +989,9 @@ async function generateScene(){
   var prompt=(sceneMap[state.currentScene]||'Professional setting')+', photorealistic, 8K, wide angle, no people';
   var btn=document.querySelector('[onclick="generateScene()"]'); if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando...';}
   try{
-    var res=await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',{method:'POST',headers:{'Authorization':'Bearer '+hfToken,'Content-Type':'application/json','X-Wait-For-Model':'true'},body:JSON.stringify({inputs:prompt,parameters:{num_inference_steps:4,guidance_scale:0}})});
-    if(!res.ok) throw new Error(await res.text());
-    var blob=await res.blob(); var url=URL.createObjectURL(blob);
+    var res=await fetch('/api/hf-image',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:prompt,steps:4})});
+    var d=await res.json(); if(!res.ok||!d.image_base64) throw new Error(d.error||'Errore');
+    var blob=base64ToBlob(d.image_base64,d.content_type||'image/jpeg'); var url=URL.createObjectURL(blob);
     showMainPreview(url,'image'); addToGallery(url,'image','Scena: '+state.currentScene);
     toast('ok','✅ Scena generata!','');
   }catch(e){toast('err','Errore scena',e.message);}
