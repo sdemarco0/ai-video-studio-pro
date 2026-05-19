@@ -1,910 +1,1081 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Video Studio Pro — LipSync & Avatar AI</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Video Studio Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<style>
+:root{--bg:#0a0a0f;--bg2:#12121a;--bg3:#1a1a25;--bgh:#1e1e2e;--acc:#6366f1;--acc2:#8b5cf6;--glow:rgba(99,102,241,0.3);--txt:#f8fafc;--txt2:#94a3b8;--txt3:#64748b;--brd:rgba(255,255,255,0.06);--ok:#10b981;--warn:#f59e0b;--err:#ef4444;--grad:linear-gradient(135deg,#6366f1,#8b5cf6)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);height:100vh;overflow:hidden}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--bg3);border-radius:2px}
+
+/* LOGIN */
+.login-overlay{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-overlay.hidden{display:none}
+.login-box{width:100%;max-width:420px;background:var(--bg2);border:1px solid var(--brd);border-radius:24px;padding:48px;box-shadow:0 20px 60px rgba(0,0,0,0.5)}
+.login-logo{width:64px;height:64px;background:var(--grad);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:32px;margin:0 auto 24px;box-shadow:0 0 30px var(--glow)}
+.login-title{text-align:center;font-size:26px;font-weight:800;margin-bottom:8px}
+.login-sub{text-align:center;color:var(--txt2);font-size:14px;margin-bottom:32px}
+.login-tabs{display:flex;gap:8px;margin-bottom:24px;background:var(--bg3);border-radius:12px;padding:4px}
+.ltab{flex:1;padding:10px;border-radius:10px;border:none;background:transparent;color:var(--txt2);font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s}
+.ltab.active{background:var(--bg2);color:var(--txt);box-shadow:0 2px 8px rgba(0,0,0,0.3)}
+.lform{display:none}.lform.active{display:block}
+.ldiv{display:flex;align-items:center;gap:16px;margin:24px 0;color:var(--txt3);font-size:12px}
+.ldiv::before,.ldiv::after{content:'';flex:1;height:1px;background:var(--brd)}
+.social-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sbtn{padding:10px;border-radius:10px;border:1px solid var(--brd);background:var(--bg3);color:var(--txt);font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:all .2s;font-family:inherit}
+.sbtn:hover{background:var(--bgh)}
+
+/* FORM */
+.fg{margin-bottom:18px}
+.fl{display:block;font-size:13px;font-weight:600;color:var(--txt2);margin-bottom:8px}
+.fi,.fsel,.fta{width:100%;padding:12px 16px;background:var(--bg3);border:1px solid var(--brd);border-radius:12px;color:var(--txt);font-size:14px;font-family:inherit;transition:all .2s}
+.fi:focus,.fsel:focus,.fta:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+.fi::placeholder{color:var(--txt3)}
+
+/* BUTTONS */
+.btn{padding:12px 24px;border-radius:12px;border:none;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;display:inline-flex;align-items:center;gap:8px;font-family:inherit;justify-content:center}
+.bp{background:var(--grad);color:#fff;box-shadow:0 0 20px var(--glow)}.bp:hover{transform:translateY(-1px);box-shadow:0 4px 24px var(--glow)}.bp:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.bg2{background:transparent;color:var(--txt2)}.bg2:hover{color:var(--txt);background:var(--bgh)}
+.bs{background:var(--bg3);color:var(--txt);border:1px solid var(--brd)}.bs:hover{background:var(--bgh)}
+.bfull{width:100%}
+
+/* HEADER */
+.bg-mesh{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(ellipse 80% 50% at 20% 40%,rgba(99,102,241,0.08),transparent),radial-gradient(ellipse 60% 40% at 80% 60%,rgba(139,92,246,0.06),transparent)}
+.header{position:fixed;top:0;left:0;right:0;height:60px;background:rgba(10,10,15,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--brd);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.logo{display:flex;align-items:center;gap:12px;font-weight:800;font-size:18px}
+.logo-icon{width:34px;height:34px;background:var(--grad);border-radius:10px;display:flex;align-items:center;justify-content:center;box-shadow:0 0 20px var(--glow);font-size:18px}
+.nav{display:flex;gap:6px}
+.nbtn{padding:8px 16px;border-radius:8px;border:none;background:transparent;color:var(--txt2);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;font-family:inherit}
+.nbtn:hover,.nbtn.active{color:var(--txt);background:var(--bgh)}
+.ubadge{display:flex;align-items:center;gap:10px;padding:6px 14px;background:var(--bg3);border:1px solid var(--brd);border-radius:24px;cursor:pointer;transition:all .2s}
+.ubadge:hover{border-color:rgba(99,102,241,0.2)}
+.uav{width:28px;height:28px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+.umenu{position:absolute;top:50px;right:0;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;padding:8px;min-width:180px;box-shadow:0 8px 32px rgba(0,0,0,0.4);display:none;z-index:200}
+.umenu.active{display:block}
+.umi{padding:10px 14px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--txt2);transition:all .2s;display:flex;align-items:center;gap:10px}
+.umi:hover{background:var(--bgh);color:var(--txt)}
+.api-status{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600}
+.api-ok{background:rgba(16,185,129,0.15);color:var(--ok)}.api-warn{background:rgba(245,158,11,0.15);color:var(--warn)}
+.api-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.credits-badge{font-size:12px;color:var(--txt2);padding:4px 12px;background:var(--bg3);border:1px solid var(--brd);border-radius:20px}
+
+/* LAYOUT */
+.main{display:flex;height:100vh;padding-top:60px}
+
+/* SIDEBAR */
+.sidebar{width:240px;background:var(--bg2);border-right:1px solid var(--brd);display:flex;flex-direction:column;overflow-y:auto;z-index:10}
+.ss{padding:20px;border-bottom:1px solid var(--brd)}
+.st{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--txt3);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.pi{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .2s;color:var(--txt2);font-size:13px;border:1px solid transparent}
+.pi:hover{background:var(--bgh);color:var(--txt)}.pi.active{background:rgba(99,102,241,0.1);color:var(--acc);border-color:rgba(99,102,241,0.3)}
+.pt{width:36px;height:36px;border-radius:8px;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px}
+.qa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qa{padding:16px 8px;background:var(--bg3);border:1px solid var(--brd);border-radius:10px;cursor:pointer;transition:all .2s;text-align:center}
+.qa:hover{border-color:rgba(99,102,241,0.2);background:var(--bgh);transform:translateY(-2px)}
+.qa-icon{width:32px;height:32px;margin:0 auto 8px;background:var(--grad);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.qa-t{font-size:12px;font-weight:600}.qa-d{font-size:11px;color:var(--txt3);margin-top:2px}
+
+/* WORKSPACE */
+.workspace{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.toolbar{height:48px;background:var(--bg2);border-bottom:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.tg{display:flex;gap:4px;align-items:center}
+.tbtn{width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--txt3);cursor:pointer;transition:all .2s;font-size:14px}
+.tbtn:hover{background:var(--bgh);color:var(--txt)}.tbtn.active{background:rgba(99,102,241,0.15);color:var(--acc)}
+.tsep{width:1px;height:20px;background:var(--brd);margin:0 4px}
+
+/* CANVAS */
+.canvas-area{flex:1;display:flex;align-items:center;justify-content:center;padding:24px;position:relative}
+.canvas-wrap{width:100%;max-width:880px;aspect-ratio:16/9;background:var(--bg2);border-radius:16px;border:1px solid var(--brd);overflow:hidden;position:relative;box-shadow:0 8px 32px rgba(0,0,0,0.4)}
+.upload-zone{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;border:2px dashed var(--brd);border-radius:14px;margin:16px;transition:all .3s}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--acc);background:rgba(99,102,241,0.05)}
+.uz-icon{font-size:48px;margin-bottom:16px;opacity:.5}
+.uz-title{font-size:18px;font-weight:600;margin-bottom:8px}
+.uz-sub{color:var(--txt3);font-size:13px;margin-bottom:16px}
+.fmts{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.fmt{padding:4px 10px;background:var(--bg3);border-radius:20px;font-size:11px;color:var(--txt2)}
+.vp,.ip{width:100%;height:100%;object-fit:contain;background:#000;display:none}
+
+/* TIMELINE */
+.timeline{height:160px;background:var(--bg2);border-top:1px solid var(--brd);display:flex;flex-direction:column}
+.tl-bar{height:36px;display:flex;align-items:center;padding:0 16px;gap:8px;border-bottom:1px solid var(--brd)}
+.tlbtn{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;background:transparent;border:none;color:var(--txt3);cursor:pointer;font-size:12px;transition:all .2s}
+.tlbtn:hover{background:var(--bgh);color:var(--txt)}
+.tltime{font-family:monospace;font-size:12px;color:var(--txt2);min-width:120px;text-align:center}
+.tl-tracks{flex:1;padding:6px 16px;display:flex;flex-direction:column;gap:4px;overflow-y:auto}
+.track{height:28px;background:var(--bg3);border-radius:6px;display:flex;align-items:center;padding:0 10px;gap:10px;border:1px solid var(--brd);position:relative;overflow:hidden}
+.tlabel{width:70px;font-size:10px;font-weight:600;color:var(--txt3);flex-shrink:0}
+.tarea{flex:1;height:18px;background:var(--bg2);border-radius:4px;position:relative}
+.tclip{position:absolute;height:100%;border-radius:4px;display:flex;align-items:center;padding:0 8px;font-size:10px;font-weight:600;white-space:nowrap;cursor:pointer}
+.cv{background:linear-gradient(90deg,#6366f1,#8b5cf6);color:#fff}
+.ca{background:linear-gradient(90deg,#10b981,#059669);color:#fff}
+.tlp{position:absolute;top:0;bottom:0;width:2px;background:#fff;z-index:10}
+
+/* RIGHT PANEL */
+.rp{width:340px;background:var(--bg2);border-left:1px solid var(--brd);overflow-y:auto}
+.ps{padding:20px;border-bottom:1px solid var(--brd)}
+.ptitle{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--txt3);margin-bottom:16px;display:flex;justify-content:space-between;align-items:center}
+.badge-pro{padding:2px 8px;background:var(--acc);color:#fff;border-radius:20px;font-size:10px;font-weight:700}
+.badge-new{padding:2px 8px;background:var(--ok);color:#fff;border-radius:20px;font-size:10px;font-weight:700}
+
+/* AI TABS */
+.ai-tabs{display:flex;gap:4px;margin-bottom:16px;background:var(--bg3);border-radius:10px;padding:4px}
+.aitab{flex:1;padding:8px 4px;border-radius:8px;border:none;background:transparent;color:var(--txt2);font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;font-family:inherit;text-align:center}
+.aitab:hover{color:var(--txt)}.aitab.active{background:var(--bg2);color:var(--acc);box-shadow:0 2px 8px rgba(0,0,0,0.2)}
+.ai-panel{display:none}.ai-panel.active{display:block}
+
+/* PROMPT BUILDER */
+.pb{background:var(--bg3);border-radius:12px;border:1px solid var(--brd);overflow:hidden;margin-bottom:12px}
+.ph{padding:10px 14px;background:var(--bgh);border-bottom:1px solid var(--brd);font-size:13px;font-weight:600;color:var(--txt2)}
+.pb-body{padding:14px}
+.pf{margin-bottom:12px}.pf:last-child{margin-bottom:0}
+.pl{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--txt2);margin-bottom:6px}
+.pta{width:100%;padding:10px 12px;background:var(--bg2);border:1px solid var(--brd);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;resize:vertical;min-height:60px;transition:all .2s}
+.pta:focus{outline:none;border-color:var(--acc);box-shadow:0 0 0 3px rgba(99,102,241,0.1)}
+.pta::placeholder{color:var(--txt3);font-size:12px}
+.gc{display:flex;gap:8px;margin-top:14px}
+.gbtn{flex:1;padding:12px;border-radius:10px;border:none;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;font-family:inherit}
+.gbp{background:var(--grad);color:#fff;box-shadow:0 0 20px var(--glow)}.gbp:hover{transform:translateY(-1px)}.gbp:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.gbs{background:var(--bg3);color:var(--txt);border:1px solid var(--brd)}.gbs:hover{background:var(--bgh)}
+
+/* PREVIEW BOX */
+.pvbox{width:100%;aspect-ratio:16/9;background:var(--bg3);border:1px solid var(--brd);border-radius:10px;overflow:hidden;display:flex;align-items:center;justify-content:center;margin-top:10px}
+.pvbox img,.pvbox video{max-width:100%;max-height:100%;object-fit:contain}
+.pvbox .ph2{color:var(--txt3);font-size:12px;text-align:center;padding:16px}
+
+/* AVATAR GRID */
+.av-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:12px}
+.av-card{aspect-ratio:1;background:var(--bg3);border:2px solid var(--brd);border-radius:12px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px}
+.av-card:hover{border-color:rgba(99,102,241,0.2);transform:translateY(-2px)}.av-card.active{border-color:var(--acc);background:rgba(99,102,241,0.05)}
+.av-img{width:40px;height:40px;border-radius:50%;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:6px}
+.av-name{font-size:11px;font-weight:600;text-align:center}
+.sc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.sc-card{aspect-ratio:16/10;background:var(--bg3);border:2px solid var(--brd);border-radius:10px;cursor:pointer;transition:all .2s;overflow:hidden;position:relative}
+.sc-card:hover{border-color:rgba(99,102,241,0.2)}.sc-card.active{border-color:var(--acc)}
+.sc-prev{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:28px}
+.sc-lbl{position:absolute;bottom:0;left:0;right:0;padding:4px 8px;background:rgba(0,0,0,0.7);font-size:10px;font-weight:600;text-align:center}
+
+/* VOICE */
+.vc-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.vc{padding:12px 8px;background:var(--bg3);border:1px solid var(--brd);border-radius:8px;cursor:pointer;text-align:center;transition:all .2s}
+.vc:hover{border-color:rgba(99,102,241,0.2)}.vc.active{border-color:var(--acc);background:rgba(99,102,241,0.1)}
+.vc-av{width:32px;height:32px;border-radius:50%;background:var(--grad);margin:0 auto 6px;display:flex;align-items:center;justify-content:center;font-size:14px}
+.vc-n{font-size:11px;font-weight:600}.vc-d{font-size:10px;color:var(--txt3);margin-top:2px}
+.fdrop{position:relative;overflow:hidden}
+.fdrop input{position:absolute;inset:0;opacity:0;cursor:pointer;z-index:2}
+.fdrop-zone{padding:20px;background:var(--bg3);border:2px dashed var(--brd);border-radius:8px;text-align:center;transition:all .2s}
+.fdrop:hover .fdrop-zone{border-color:var(--acc);background:rgba(99,102,241,0.05)}
+
+/* EXPORT */
+.ex-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.exo{padding:14px 4px;background:var(--bg3);border:2px solid var(--brd);border-radius:8px;text-align:center;cursor:pointer;transition:all .2s}
+.exo:hover{border-color:rgba(99,102,241,0.2)}.exo.active{border-color:var(--acc);background:rgba(99,102,241,0.1)}
+.exq{font-size:16px;font-weight:800}.exf{font-size:10px;color:var(--txt3);margin-top:4px}
+
+/* SLIDERS / TOGGLES */
+.sw{display:flex;align-items:center;gap:12px}
+.sl{flex:1;-webkit-appearance:none;height:4px;background:var(--bg3);border-radius:2px;outline:none}
+.sl::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;background:var(--grad);border-radius:50%;cursor:pointer}
+.sv{min-width:36px;text-align:right;font-family:monospace;font-size:12px;color:var(--acc);font-weight:600}
+.tr{display:flex;justify-content:space-between;align-items:center;padding:10px 0}
+.trl{font-size:13px;color:var(--txt2)}
+.tog{position:relative;width:40px;height:22px}
+.tog input{opacity:0;width:0;height:0}
+.tog-sl{position:absolute;inset:0;background:var(--bg3);border-radius:22px;cursor:pointer;transition:.3s;border:1px solid var(--brd)}
+.tog-sl::before{content:'';position:absolute;height:16px;width:16px;left:2px;bottom:2px;background:var(--txt3);border-radius:50%;transition:.3s}
+.tog input:checked+.tog-sl{background:rgba(99,102,241,0.2);border-color:var(--acc)}
+.tog input:checked+.tog-sl::before{transform:translateX(18px);background:var(--acc)}
+
+/* GALLERY */
+.gal-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:12px}
+.gi{aspect-ratio:1;background:var(--bg3);border:2px solid var(--brd);border-radius:10px;cursor:pointer;overflow:hidden;position:relative;transition:all .2s}
+.gi:hover{border-color:var(--acc);transform:translateY(-2px)}
+.gi img,.gi video{width:100%;height:100%;object-fit:cover}
+.gi-ov{position:absolute;inset:0;background:rgba(0,0,0,0.6);opacity:0;display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .2s}
+.gi:hover .gi-ov{opacity:1}
+.ga{width:30px;height:30px;border-radius:8px;background:rgba(255,255,255,0.2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:13px;transition:all .2s}
+.ga:hover{background:rgba(255,255,255,0.3)}
+
+/* MODALS */
+.mbg{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:500;display:none;align-items:center;justify-content:center;padding:40px}
+.mbg.active{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--brd);border-radius:20px;width:100%;max-width:480px;box-shadow:0 8px 32px rgba(0,0,0,0.5)}
+.modal-lg{max-width:700px}
+.mh{padding:24px 24px 0}.mt{font-size:20px;font-weight:700}
+.mb{padding:20px 24px}
+.mf{padding:16px 24px 24px;display:flex;justify-content:flex-end;gap:12px}
+
+/* PROCESSING */
+.proc{position:fixed;inset:0;background:rgba(10,10,15,0.95);backdrop-filter:blur(10px);z-index:1000;display:none;flex-direction:column;align-items:center;justify-content:center;gap:24px}
+.proc.active{display:flex}
+.proc-spin{width:70px;height:70px;position:relative}
+.proc-spin::before{content:'';position:absolute;inset:0;border:3px solid var(--bg3);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite}
+.proc-spin::after{content:'';position:absolute;inset:10px;border:3px solid var(--bg3);border-top-color:var(--acc2);border-radius:50%;animation:spin 1.5s linear infinite reverse}
+.proc-t{font-size:22px;font-weight:700}.proc-s{color:var(--txt3);font-size:14px}
+.proc-steps{display:flex;gap:40px;margin-top:16px}
+.pstep{display:flex;flex-direction:column;align-items:center;gap:8px}
+.pstep-i{width:36px;height:36px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;color:var(--txt3);font-size:14px;transition:all .3s}
+.pstep.active .pstep-i{background:var(--acc);color:#fff;box-shadow:0 0 20px var(--glow)}
+.pstep-n{font-size:11px;color:var(--txt3)}
+
+/* TOAST */
+.toast-wrap{position:fixed;bottom:24px;right:24px;z-index:2000;display:flex;flex-direction:column;gap:8px}
+.toast{padding:14px 18px;background:var(--bg2);border:1px solid var(--brd);border-radius:12px;box-shadow:0 4px 16px rgba(0,0,0,0.4);display:flex;align-items:center;gap:12px;max-width:360px}
+.ti{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:14px}
+.tok{background:rgba(16,185,129,0.15);color:var(--ok)}.terr{background:rgba(239,68,68,0.15);color:var(--err)}.tinf{background:rgba(99,102,241,0.15);color:var(--acc)}
+
+/* ANIMATIONS */
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(20px)}to{opacity:1;transform:scale(1) translateY(0)}}
+.modal{animation:modalIn .3s ease}
+
+/* TPL CARD */
+.tpl{aspect-ratio:9/16;background:var(--bg3);border-radius:12px;cursor:pointer;padding:16px;text-align:center;border:2px solid transparent;transition:all .2s}
+.tpl:hover{border-color:var(--acc);transform:translateY(-2px)}
+</style>
 </head>
 <body>
-
-<!-- ==================== BACKGROUND ==================== -->
 <div class="bg-mesh"></div>
 
-<!-- ==================== LOGIN OVERLAY ==================== -->
+<!-- LOGIN -->
 <div class="login-overlay" id="loginOverlay">
-    <div class="login-box">
-        <div class="login-logo">🎬</div>
-        <div class="login-title">AI Video Studio Pro</div>
-        <div class="login-subtitle">Crea video AI con LipSync, Avatar e Scene 3D</div>
-
-        <div class="login-tabs">
-            <button class="login-tab active" onclick="switchLoginTab(this,'login')">Accedi</button>
-            <button class="login-tab"        onclick="switchLoginTab(this,'register')">Registrati</button>
-        </div>
-
-        <!-- Login Form -->
-        <div class="login-form active" id="loginForm">
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-input" id="loginEmail" placeholder="tuo@email.com">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-input" id="loginPassword" placeholder="La tua password">
-            </div>
-            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
-                <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-2);cursor:pointer;">
-                    <input type="checkbox" id="rememberMe" style="accent-color:var(--accent);"> Ricordami
-                </label>
-                <a href="#" style="font-size:13px;color:var(--accent);text-decoration:none;"
-                   onclick="toast('info','Recupero','Contatta supporto per reset password'); return false;">
-                   Password dimenticata?
-                </a>
-            </div>
-            <button class="btn btn-primary btn-full btn-lg" onclick="doLogin()">🔐 Accedi</button>
-        </div>
-
-        <!-- Register Form -->
-        <div class="login-form" id="registerForm">
-            <div class="form-group">
-                <label class="form-label">Nome Completo</label>
-                <input type="text" class="form-input" id="regName" placeholder="Mario Rossi">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-input" id="regEmail" placeholder="tuo@email.com">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Password</label>
-                <input type="password" class="form-input" id="regPassword" placeholder="Minimo 8 caratteri">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Conferma Password</label>
-                <input type="password" class="form-input" id="regPassword2" placeholder="Ripeti password">
-            </div>
-            <button class="btn btn-primary btn-full btn-lg" onclick="doRegister()">✨ Crea Account</button>
-        </div>
-
-        <div class="login-divider">oppure</div>
-        <div class="social-login">
-            <button class="social-btn" onclick="socialLogin('google')"><span style="color:#ea4335;">G</span> Google</button>
-            <button class="social-btn" onclick="socialLogin('github')"><span style="color:#fff;">⚡</span> GitHub</button>
-        </div>
-        <div style="text-align:center;margin-top:20px;font-size:12px;color:var(--text-3);">
-            Accedendo accetti i
-            <a href="#" style="color:var(--accent);" onclick="return false;">Termini</a> e la
-            <a href="#" style="color:var(--accent);" onclick="return false;">Privacy</a>
-        </div>
+  <div class="login-box">
+    <div class="login-logo">🎬</div>
+    <div class="login-title">AI Video Studio Pro</div>
+    <div class="login-sub">Crea video AI con LipSync, Avatar e Scene</div>
+    <div class="login-tabs">
+      <button class="ltab active" onclick="switchLoginTab(this,'login')">Accedi</button>
+      <button class="ltab" onclick="switchLoginTab(this,'register')">Registrati</button>
     </div>
+    <div class="lform active" id="loginForm">
+      <div class="fg"><label class="fl">Email</label><input type="email" class="fi" id="loginEmail" placeholder="tuo@email.com"></div>
+      <div class="fg"><label class="fl">Password</label><input type="password" class="fi" id="loginPassword" placeholder="Password"></div>
+      <button class="btn bp bfull" onclick="doLogin()">🔐 Accedi</button>
+    </div>
+    <div class="lform" id="registerForm">
+      <div class="fg"><label class="fl">Nome</label><input type="text" class="fi" id="regName" placeholder="Mario Rossi"></div>
+      <div class="fg"><label class="fl">Email</label><input type="email" class="fi" id="regEmail" placeholder="tuo@email.com"></div>
+      <div class="fg"><label class="fl">Password</label><input type="password" class="fi" id="regPassword" placeholder="Minimo 8 caratteri"></div>
+      <div class="fg"><label class="fl">Conferma Password</label><input type="password" class="fi" id="regPassword2" placeholder="Ripeti password"></div>
+      <button class="btn bp bfull" onclick="doRegister()">✨ Crea Account</button>
+    </div>
+    <div class="ldiv">oppure</div>
+    <div class="social-row">
+      <button class="sbtn" onclick="socialLogin('google')"><span style="color:#ea4335">G</span> Google</button>
+      <button class="sbtn" onclick="socialLogin('github')">⚡ GitHub</button>
+    </div>
+  </div>
 </div>
 
-<!-- ==================== HEADER ==================== -->
-<header class="header" id="mainHeader" style="display:none;">
-    <div class="logo">
-        <div class="logo-icon">🎬</div>
-        AI Video Studio Pro
+<!-- HEADER -->
+<header class="header" id="mainHeader" style="display:none">
+  <div class="logo"><div class="logo-icon">🎬</div>AI Video Studio Pro</div>
+  <nav class="nav">
+    <button class="nbtn active" onclick="switchTab(this,'create')">🎬 Crea</button>
+    <button class="nbtn" onclick="switchTab(this,'gallery')">🖼️ Galleria</button>
+    <button class="nbtn" onclick="switchTab(this,'templates')">🎨 Template</button>
+  </nav>
+  <div style="display:flex;gap:10px;align-items:center">
+    <div id="creditsDisplay" class="credits-badge"></div>
+    <div class="api-status api-warn" id="apiStatus"><span class="api-dot"></span><span id="apiStatusText">Configura API</span></div>
+    <button class="btn bs" onclick="showApiModal()" style="padding:8px 14px;font-size:13px">🔑 API</button>
+    <div style="position:relative">
+      <div class="ubadge" onclick="toggleUserMenu()">
+        <div class="uav" id="userAvatar">U</div>
+        <span id="userName" style="font-size:13px;font-weight:600">Utente</span>
+        <span style="font-size:10px">▼</span>
+      </div>
+      <div class="umenu" id="userMenu">
+        <div class="umi" onclick="showProfile()">👤 Profilo</div>
+        <div class="umi" onclick="showBilling()">💳 Abbonamento</div>
+        <div style="height:1px;background:var(--brd);margin:4px 0"></div>
+        <div class="umi" onclick="doLogout()" style="color:var(--err)">🚪 Esci</div>
+      </div>
     </div>
-    <nav class="nav">
-        <button class="nav-btn active" onclick="switchTab(this,'create')">🎬 Crea</button>
-        <button class="nav-btn"        onclick="switchTab(this,'gallery')">🖼️ Galleria</button>
-        <button class="nav-btn"        onclick="switchTab(this,'templates')">🎨 Template</button>
-        <button class="nav-btn"        onclick="switchTab(this,'library')">📚 Libreria</button>
-    </nav>
-    <div style="display:flex;gap:10px;align-items:center;">
-        <div id="creditsDisplay" style="font-size:12px;color:var(--text-2);padding:4px 12px;background:var(--bg-tertiary);border:1px solid var(--border);border-radius:20px;"></div>
-        <div class="api-status warn" id="apiStatusBadge">
-            <span class="api-dot"></span>
-            <span id="apiStatusText">Demo Mode</span>
-        </div>
-        <button class="btn btn-ghost" onclick="showApiModal()">🔑 API</button>
-        <div style="position:relative;">
-            <div class="user-badge" onclick="toggleUserMenu()">
-                <div class="user-avatar" id="userAvatar">U</div>
-                <span id="userName" style="font-size:13px;font-weight:600;">Utente</span>
-                <span style="font-size:10px;">▼</span>
-            </div>
-            <div class="user-menu" id="userMenu">
-                <div class="user-menu-item" onclick="showProfile()">👤 Profilo</div>
-                <div class="user-menu-item" onclick="showSettings()">⚙️ Impostazioni</div>
-                <div class="user-menu-item" onclick="showBilling()">💳 Abbonamento</div>
-                <div style="height:1px;background:var(--border);margin:4px 0;"></div>
-                <div class="user-menu-item" onclick="doLogout()" style="color:var(--error);">🚪 Esci</div>
-            </div>
-        </div>
-    </div>
+  </div>
 </header>
 
-<!-- ==================== MAIN APP ==================== -->
-<div class="main" id="mainApp" style="display:none;">
+<!-- MAIN APP -->
+<div class="main" id="mainApp" style="display:none">
 
-    <!-- SIDEBAR -->
-    <aside class="sidebar">
-        <div class="sidebar-section">
-            <div class="sidebar-title">
-                Progetti Recenti
-                <button class="btn btn-ghost" style="padding:4px 8px;font-size:11px;" onclick="newProject()">+ Nuovo</button>
-            </div>
-            <div id="projectList"></div>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="ss">
+      <div class="st">Progetti <button class="btn bg2" style="padding:4px 8px;font-size:11px" onclick="newProject()">+ Nuovo</button></div>
+      <div id="projectList"></div>
+    </div>
+    <div class="ss">
+      <div class="st">Quick Start</div>
+      <div class="qa-grid">
+        <div class="qa" onclick="triggerUpload()"><div class="qa-icon">📤</div><div class="qa-t">Upload</div><div class="qa-d">Foto/Video</div></div>
+        <div class="qa" onclick="switchAIPanel('image')"><div class="qa-icon">🖼️</div><div class="qa-t">Immagine</div><div class="qa-d">AI da testo</div></div>
+        <div class="qa" onclick="switchAIPanel('video')"><div class="qa-icon">🎬</div><div class="qa-t">Video</div><div class="qa-d">AI da testo</div></div>
+        <div class="qa" onclick="switchAIPanel('avatar')"><div class="qa-icon">🎭</div><div class="qa-t">Avatar</div><div class="qa-d">AI persona</div></div>
+      </div>
+    </div>
+    <div class="ss">
+      <div class="st">Storage</div>
+      <div style="font-size:12px;color:var(--txt2);margin-bottom:8px">Usato <span style="float:right;font-weight:600"><span id="storageUsed">0.0</span>/<span id="storageTotal">5.0</span>GB</span></div>
+      <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden"><div style="width:0%;height:100%;background:var(--grad);transition:width .3s" id="storageBar"></div></div>
+    </div>
+  </aside>
+
+  <!-- WORKSPACE CREATE -->
+  <div class="workspace" id="workspaceCreate">
+    <div class="toolbar">
+      <div class="tg">
+        <button class="tbtn active" onclick="selTool(this)">↖</button>
+        <button class="tbtn" onclick="selTool(this)">✂</button>
+        <button class="tbtn" onclick="selTool(this)">🔍</button>
+        <div class="tsep"></div>
+        <button class="tbtn" onclick="undo()">↩</button>
+        <button class="tbtn" onclick="redo()">↪</button>
+      </div>
+      <div class="tg">
+        <span style="font-size:12px;color:var(--txt3)">1920 × 1080</span>
+        <div class="tsep"></div>
+        <button class="tbtn" onclick="toggleFullscreen()">⛶</button>
+      </div>
+    </div>
+    <div class="canvas-area">
+      <div class="canvas-wrap" id="canvasWrapper">
+        <div class="upload-zone" id="uploadZone" onclick="triggerUpload()">
+          <div class="uz-icon">🎬</div>
+          <div class="uz-title">Trascina qui il tuo video o foto</div>
+          <div class="uz-sub">Oppure clicca per selezionare un file</div>
+          <div class="fmts"><span class="fmt">MP4</span><span class="fmt">MOV</span><span class="fmt">JPG</span><span class="fmt">PNG</span></div>
         </div>
+        <video class="vp" id="videoPreview" controls ontimeupdate="onVideoTimeUpdate()" onended="onVideoEnded()"></video>
+        <img class="ip" id="imagePreview" style="object-fit:contain">
+        <input type="file" id="fileInput" style="display:none" accept="video/*,image/*" onchange="handleFile(event)">
+      </div>
+    </div>
+    <div class="timeline">
+      <div class="tl-bar">
+        <button class="tlbtn" onclick="togglePlay()" id="playBtn">▶</button>
+        <button class="tlbtn" onclick="skipBack()">⏮</button>
+        <button class="tlbtn" onclick="skipForward()">⏭</button>
+        <div class="tsep"></div>
+        <span class="tltime" id="timeDisplay">00:00 / 00:00</span>
+      </div>
+      <div class="tl-tracks">
+        <div class="track"><div class="tlabel">🎬 Video</div><div class="tarea" id="trackVideo"><div class="tlp" id="tlProgress" style="left:0%"></div></div></div>
+        <div class="track"><div class="tlabel">🔊 Audio</div><div class="tarea" id="trackAudio"></div></div>
+        <div class="track"><div class="tlabel">👄 LipSync</div><div class="tarea" id="trackLip"></div></div>
+      </div>
+    </div>
+  </div>
 
-        <div class="sidebar-section">
-            <div class="sidebar-title">Quick Start</div>
-            <div class="quick-actions">
-                <div class="quick-action" onclick="triggerUpload()">
-                    <div class="qa-icon">📤</div>
-                    <div class="qa-title">Upload</div>
-                    <div class="qa-desc">Foto/Video</div>
-                </div>
-                <div class="quick-action" onclick="showAIGenerate()">
-                    <div class="qa-icon">✨</div>
-                    <div class="qa-title">Genera AI</div>
-                    <div class="qa-desc">Testo → Video</div>
-                </div>
-                <div class="quick-action" onclick="showTTS()">
-                    <div class="qa-icon">🗣️</div>
-                    <div class="qa-title">TTS</div>
-                    <div class="qa-desc">Text to Speech</div>
-                </div>
-                <div class="quick-action" onclick="showTemplates()">
-                    <div class="qa-icon">🎨</div>
-                    <div class="qa-title">Template</div>
-                    <div class="qa-desc">Predefiniti</div>
-                </div>
+  <!-- WORKSPACE GALLERY -->
+  <div class="workspace hidden" id="workspaceGallery" style="padding:32px;overflow-y:auto">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <h2 style="font-size:24px;font-weight:800">🖼️ Galleria</h2>
+      <div style="display:flex;gap:8px">
+        <button class="btn bs" onclick="filterGallery('all')">Tutto</button>
+        <button class="btn bg2" onclick="filterGallery('image')">Immagini</button>
+        <button class="btn bg2" onclick="filterGallery('video')">Video</button>
+      </div>
+    </div>
+    <div class="gal-grid" id="galleryGrid"></div>
+  </div>
+
+  <!-- RIGHT PANEL -->
+  <aside class="rp" id="rightPanel">
+
+    <!-- AI GENERATION -->
+    <div class="ps">
+      <div class="ptitle">🎨 Generazione AI <span class="badge-new">NEW</span></div>
+      <div class="ai-tabs">
+        <button class="aitab active" id="aiTabImage" onclick="switchAIPanel('image')">🖼️ Immagine</button>
+        <button class="aitab" id="aiTabVideo" onclick="switchAIPanel('video')">🎬 Video</button>
+        <button class="aitab" id="aiTabAvatar" onclick="switchAIPanel('avatar')">🎭 Avatar</button>
+      </div>
+
+      <!-- IMAGE PANEL -->
+      <div class="ai-panel active" id="aiPanelImage">
+        <div class="pb">
+          <div class="ph">📝 Descrivi l'immagine</div>
+          <div class="pb-body">
+            <div class="pf"><div class="pl">💬 Prompt</div><textarea class="pta" id="imgPrompt" placeholder="Es: Presentatore professionale in studio con luci blu, fotorealistico"></textarea></div>
+            <div class="pf"><div class="pl">🎨 Stile</div>
+              <select class="fsel" id="imgStyle">
+                <option value="realistic">Realistico (Fotografia)</option>
+                <option value="cinematic">Cinematografico</option>
+                <option value="3d">3D Render</option>
+                <option value="digital">Digital Art</option>
+              </select>
             </div>
+            <div class="pf"><div class="pl">📐 Formato</div>
+              <select class="fsel" id="imgRatio">
+                <option value="16:9">16:9 Widescreen</option>
+                <option value="9:16">9:16 Verticale</option>
+                <option value="1:1">1:1 Quadrato</option>
+              </select>
+            </div>
+            <div class="gc"><button class="gbtn gbp" onclick="generateImage()">✨ Genera Immagine</button></div>
+          </div>
         </div>
+        <div class="pvbox" id="imgPreviewBox"><div class="ph2">L'immagine apparirà qui</div></div>
+      </div>
 
-        <div class="sidebar-section">
-            <div class="sidebar-title">Storage</div>
-            <div style="font-size:12px;color:var(--text-2);margin-bottom:8px;">
-                <span>Usato</span>
-                <span style="float:right;font-weight:600;">
-                    <span id="storageUsed">0.0</span> / <span id="storageTotal">5.0</span> GB
-                </span>
+      <!-- VIDEO PANEL -->
+      <div class="ai-panel" id="aiPanelVideo">
+        <div class="pb">
+          <div class="ph">🎬 Crea Video AI</div>
+          <div class="pb-body">
+            <div class="pf"><div class="pl">👤 Personaggio</div><textarea class="pta" id="videoCharPrompt" placeholder="Es: Uomo 35 anni, barba curata, completo blu, sorridente"></textarea></div>
+            <div class="pf"><div class="pl">💬 Cosa dirà / farà</div><textarea class="pta" id="videoDialogPrompt" placeholder="Es: Benvenuti nella nostra piattaforma! Oggi vi mostriamo..."></textarea></div>
+            <div class="pf"><div class="pl">🌍 Ambiente</div><textarea class="pta" id="videoEnvPrompt" placeholder="Es: Studio moderno, luci LED blu, schermi sullo sfondo"></textarea></div>
+            <div class="pf"><div class="pl">🎨 Qualità</div>
+              <select class="fsel" id="videoStyle">
+                <option value="standard">Standard — CogVideoX (~30-50 sec)</option>
+                <option value="cinematic">Cinematografico — LTX-Video (~60-90 sec)</option>
+              </select>
             </div>
-            <div style="height:5px;background:var(--bg-tertiary);border-radius:3px;overflow:hidden;">
-                <div style="width:0%;height:100%;background:var(--gradient-primary);transition:width 0.3s;" id="storageBar"></div>
+            <div class="gc">
+              <button class="gbtn gbp" onclick="generateVideo()" id="genVideoBtn">🎬 Genera Video</button>
             </div>
-            <div style="margin-top:12px;font-size:11px;color:var(--text-3);">
-                💡 <a href="#" style="color:var(--accent);text-decoration:none;" onclick="showBilling(); return false;">Passa a Pro</a> per 50GB
-            </div>
+          </div>
         </div>
-    </aside>
+        <div class="pvbox" id="videoPreviewBox"><div class="ph2">Il video apparirà qui</div></div>
+      </div>
 
-    <!-- WORKSPACE: CREATE -->
-    <div class="workspace" id="workspaceCreate">
-
-        <!-- Toolbar -->
-        <div class="toolbar">
-            <div class="tool-group">
-                <button class="tool-btn active" onclick="selTool(this)" title="Select">↖</button>
-                <button class="tool-btn"        onclick="selTool(this)" title="Crop">✂</button>
-                <button class="tool-btn"        onclick="selTool(this)" title="Zoom">🔍</button>
-                <div class="tool-sep"></div>
-                <button class="tool-btn" onclick="undo()" title="Undo">↩</button>
-                <button class="tool-btn" onclick="redo()" title="Redo">↪</button>
+      <!-- AVATAR PANEL -->
+      <div class="ai-panel" id="aiPanelAvatar">
+        <div class="pb">
+          <div class="ph">🎭 Genera Avatar</div>
+          <div class="pb-body">
+            <div class="av-grid">
+              <div class="av-card active" onclick="selAvatar(this,'default')"><div class="av-img">👤</div><div class="av-name">Default</div></div>
+              <div class="av-card" onclick="selAvatar(this,'business')"><div class="av-img">👔</div><div class="av-name">Business</div></div>
+              <div class="av-card" onclick="selAvatar(this,'casual')"><div class="av-img">😎</div><div class="av-name">Casual</div></div>
+              <div class="av-card" onclick="selAvatar(this,'formal')"><div class="av-img">🤵</div><div class="av-name">Formal</div></div>
+              <div class="av-card" onclick="selAvatar(this,'creative')"><div class="av-img">🎨</div><div class="av-name">Creative</div></div>
+              <div class="av-card" onclick="document.getElementById('avatarUpload').click()"><div class="av-img">+</div><div class="av-name">Importa</div><input type="file" id="avatarUpload" style="display:none" accept="image/*" onchange="handleAvatarUpload(event)"></div>
             </div>
-            <div class="tool-group">
-                <span style="font-size:12px;color:var(--text-3);" id="resDisplay">1920 × 1080</span>
-                <div class="tool-sep"></div>
-                <button class="tool-btn" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
-            </div>
+            <div class="pf"><div class="pl">📝 Descrivi avatar</div><textarea class="pta" id="avatarPrompt" placeholder="Es: Donna 28 anni, capelli castani, occhiali, sorriso professionale"></textarea></div>
+            <div class="gc"><button class="gbtn gbp" onclick="generateAvatar()">✨ Genera Avatar</button></div>
+          </div>
         </div>
-
-        <!-- Canvas -->
-        <div class="canvas-area">
-            <div class="canvas-wrapper" id="canvasWrapper">
-                <div class="upload-zone" id="uploadZone" onclick="triggerUpload()">
-                    <div class="upload-orbits">
-                        <div class="orbit orbit-1"></div>
-                        <div class="orbit orbit-2"></div>
-                        <div class="orbit-center"></div>
-                    </div>
-                    <h3>Trascina qui il tuo video o foto</h3>
-                    <p>Oppure clicca per selezionare un file</p>
-                    <div class="formats">
-                        <span class="format-tag">MP4</span>
-                        <span class="format-tag">MOV</span>
-                        <span class="format-tag">WEBM</span>
-                        <span class="format-tag">JPG</span>
-                        <span class="format-tag">PNG</span>
-                    </div>
-                </div>
-                <video class="video-preview" id="videoPreview"
-                       controls
-                       ontimeupdate="onVideoTimeUpdate()"
-                       onended="onVideoEnded()"></video>
-                <img class="video-preview" id="imagePreview" style="object-fit:contain;">
-                <div class="canvas-overlay" id="canvasOverlay">
-                    <div class="lip-badge" id="lipBadge" style="display:none;">
-                        <span class="lip-dot"></span>
-                        <span>Lip Sync Active</span>
-                    </div>
-                </div>
-                <input type="file" id="fileInput" style="display:none;" accept="video/*,image/*" onchange="handleFile(event)">
+        <div style="margin-top:16px">
+          <div class="ph" style="background:var(--bgh);padding:10px 14px;border-radius:12px 12px 0 0;border:1px solid var(--brd)">🌆 Ambienti / Scene</div>
+          <div style="padding:14px;background:var(--bg3);border-radius:0 0 12px 12px;border:1px solid var(--brd);border-top:none">
+            <div class="sc-grid">
+              <div class="sc-card active" onclick="selScene(this,'studio')"><div class="sc-prev">🏢</div><div class="sc-lbl">Studio</div></div>
+              <div class="sc-card" onclick="selScene(this,'nature')"><div class="sc-prev">🌿</div><div class="sc-lbl">Natura</div></div>
+              <div class="sc-card" onclick="selScene(this,'city')"><div class="sc-prev">🏙️</div><div class="sc-lbl">Città</div></div>
+              <div class="sc-card" onclick="selScene(this,'home')"><div class="sc-prev">🏠</div><div class="sc-lbl">Casa</div></div>
             </div>
+            <div class="gc" style="margin-top:12px"><button class="gbtn gbs" onclick="generateScene()">🌆 Genera Scena</button></div>
+          </div>
         </div>
-
-        <!-- Timeline -->
-        <div class="timeline">
-            <div class="tl-toolbar">
-                <button class="tl-btn" onclick="togglePlay()" id="playBtn">▶</button>
-                <button class="tl-btn" onclick="skipBack()">⏮</button>
-                <button class="tl-btn" onclick="skipForward()">⏭</button>
-                <div class="tool-sep"></div>
-                <span class="tl-time" id="timeDisplay">00:00:00 / 00:00:00</span>
-                <div style="flex:1;"></div>
-                <button class="tl-btn" onclick="zoomOut()">−</button>
-                <button class="tl-btn" onclick="zoomIn()">+</button>
-            </div>
-            <div class="tl-tracks">
-                <div class="track">
-                    <div class="track-label">🎬 Video</div>
-                    <div class="track-area" id="trackVideo">
-                        <div class="tl-progress" id="tlProgress" style="left:0%"></div>
-                    </div>
-                </div>
-                <div class="track">
-                    <div class="track-label">🎭 Avatar</div>
-                    <div class="track-area" id="trackAvatar"></div>
-                </div>
-                <div class="track">
-                    <div class="track-label">🌆 Scena</div>
-                    <div class="track-area" id="trackScene"></div>
-                </div>
-                <div class="track">
-                    <div class="track-label">🔊 Audio</div>
-                    <div class="track-area" id="trackAudio"></div>
-                </div>
-                <div class="track">
-                    <div class="track-label">👄 LipSync</div>
-                    <div class="track-area" id="trackLip"></div>
-                </div>
-            </div>
-        </div>
+      </div>
     </div>
 
-    <!-- WORKSPACE: GALLERY -->
-    <div class="workspace hidden" id="workspaceGallery" style="padding:32px;overflow-y:auto;">
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px;">
-            <h2 style="font-size:24px;font-weight:800;">🖼️ Galleria Contenuti</h2>
-            <div style="display:flex;gap:8px;">
-                <button class="btn btn-secondary" onclick="filterGallery('all')">Tutto</button>
-                <button class="btn btn-ghost"     onclick="filterGallery('image')">Immagini</button>
-                <button class="btn btn-ghost"     onclick="filterGallery('video')">Video</button>
-            </div>
+    <!-- LIPSYNC -->
+    <div class="ps">
+      <div class="ptitle">👄 Lip Sync <span class="badge-pro">PRO</span></div>
+      <div class="vc-grid">
+        <div class="vc active" id="vc-tts" onclick="selVoice(this,'tts')"><div class="vc-av">🎙️</div><div class="vc-n">TTS</div><div class="vc-d">Scrivi testo</div></div>
+        <div class="vc" id="vc-upload" onclick="selVoice(this,'upload')"><div class="vc-av">📁</div><div class="vc-n">Upload</div><div class="vc-d">File audio</div></div>
+        <div class="vc" id="vc-record" onclick="selVoice(this,'record')"><div class="vc-av">🎤</div><div class="vc-n">Registra</div><div class="vc-d">Microfono</div></div>
+      </div>
+      <!-- TTS -->
+      <div id="grpTTS">
+        <div class="fg"><label class="fl">Testo da pronunciare</label><textarea class="fta" id="ttsText" placeholder="Scrivi esattamente quello che il personaggio deve dire..." rows="4" oninput="onTTSInput()"></textarea></div>
+        <div style="display:flex;gap:8px;margin-bottom:12px">
+          <select class="fsel" id="ttsLang"><option value="it-IT">🇮🇹 Italiano</option><option value="en-US">🇺🇸 English</option><option value="es-ES">🇪🇸 Español</option><option value="fr-FR">🇫🇷 Français</option></select>
         </div>
-        <div class="gallery-grid" id="galleryGrid"></div>
+        <button class="btn bp bfull" id="ttsBtn" onclick="generateTTS()" disabled>🎙️ Genera Voce TTS</button>
+      </div>
+      <!-- Upload Audio -->
+      <div id="grpUpload" class="hidden">
+        <div class="fdrop"><input type="file" accept="audio/*" onchange="handleAudio(event)"><div class="fdrop-zone"><div style="font-size:24px;margin-bottom:8px">📤</div><div style="font-size:13px;color:var(--txt2)" id="audioDropText">Trascina audio o clicca</div><div id="audioName" style="font-size:12px;color:var(--acc);margin-top:4px;display:none"></div></div></div>
+      </div>
+      <!-- Record -->
+      <div id="grpRecord" class="hidden">
+        <button class="btn bp bfull" id="recBtn" onclick="toggleRec()">🔴 Inizia Registrazione</button>
+        <div id="recStatus" style="text-align:center;margin-top:8px;font-size:12px;color:var(--txt3)"></div>
+      </div>
     </div>
 
-    <!-- RIGHT PANEL -->
-    <aside class="right-panel" id="rightPanel">
-
-        <!-- AI GENERATION -->
-        <div class="panel-section">
-            <div class="panel-title">🎨 Generazione AI <span class="badge-new">NEW</span></div>
-
-            <div class="ai-tabs">
-                <button class="ai-tab active" onclick="switchAIPanel('image')"  id="aiTabImage">🖼️ Immagine</button>
-                <button class="ai-tab"        onclick="switchAIPanel('video')"  id="aiTabVideo">🎬 Video</button>
-                <button class="ai-tab"        onclick="switchAIPanel('avatar')" id="aiTabAvatar">🎭 Avatar</button>
-            </div>
-
-            <!-- AI Image Panel -->
-            <div class="ai-panel active" id="aiPanelImage">
-                <div class="prompt-builder">
-                    <div class="prompt-header">📝 Prompt Immagine</div>
-                    <div class="prompt-body">
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">💬</span> Descrizione</div>
-                            <textarea class="prompt-textarea" id="imgPrompt"
-                                placeholder="Descrivi l'immagine che vuoi creare...&#10;Es: Un presentatore professionale in uno studio moderno con luci blu"></textarea>
-                        </div>
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">🎨</span> Stile</div>
-                            <select class="form-select" id="imgStyle">
-                                <option value="realistic">Realistico (Fotografia)</option>
-                                <option value="cinematic">Cinematografico</option>
-                                <option value="3d">3D Render</option>
-                                <option value="anime">Anime/Manga</option>
-                                <option value="digital">Digital Art</option>
-                                <option value="painting">Pittura Olio</option>
-                                <option value="watercolor">Acquerello</option>
-                            </select>
-                        </div>
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">📐</span> Ratio</div>
-                            <select class="form-select" id="imgRatio">
-                                <option value="16:9">16:9 Widescreen</option>
-                                <option value="9:16">9:16 Verticale</option>
-                                <option value="1:1">1:1 Quadrato</option>
-                                <option value="4:3">4:3 Classico</option>
-                                <option value="21:9">21:9 Cinemascope</option>
-                            </select>
-                        </div>
-                        <div class="gen-controls">
-                            <button class="gen-btn gen-btn-primary" onclick="generateImage()">✨ Genera</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="preview-box" id="imgPreviewBox">
-                    <div class="placeholder">L'immagine generata apparirà qui</div>
-                </div>
-            </div>
-
-            <!-- AI Video Panel -->
-            <div class="ai-panel" id="aiPanelVideo">
-                <div class="prompt-builder">
-                    <div class="prompt-header">🎬 Prompt Video Completo</div>
-                    <div class="prompt-body">
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">👤</span> Personaggio / Avatar</div>
-                            <textarea class="prompt-textarea" id="videoCharPrompt"
-                                placeholder="Descrivi il personaggio: età, aspetto, vestiti, espressione...&#10;Es: Uomo 35 anni, barba curata, completo blu, sorridente"></textarea>
-                        </div>
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">💬</span> Dialogo (cosa dirà)</div>
-                            <textarea class="prompt-textarea" id="videoDialogPrompt"
-                                placeholder="Scrivi ESATTAMENTE ciò che dirà...&#10;Es: Benvenuti nella nostra nuova piattaforma!"></textarea>
-                        </div>
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">🚶</span> Movimenti & Azioni</div>
-                            <textarea class="prompt-textarea" id="videoMovePrompt"
-                                placeholder="Come si muove...&#10;Es: Cammina verso camera, gesticola, si siede"></textarea>
-                        </div>
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">🌍</span> Contesto Ambientale</div>
-                            <textarea class="prompt-textarea" id="videoEnvPrompt"
-                                placeholder="L'ambiente circostante...&#10;Es: Studio moderno, luci LED blu, schermi"></textarea>
-                        </div>
-                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-                            <div class="prompt-field">
-                                <div class="prompt-label"><span class="icon">🎨</span> Stile</div>
-                                <select class="form-select" id="videoStyle">
-                                    <option value="realistic">Realistico</option>
-                                    <option value="cinematic">Cinematografico</option>
-                                    <option value="3d">3D Animato</option>
-                                    <option value="anime">Anime</option>
-                                </select>
-                            </div>
-                            <div class="prompt-field">
-                                <div class="prompt-label"><span class="icon">⏱️</span> Durata</div>
-                                <select class="form-select" id="videoDuration">
-                                    <option value="5">5 secondi</option>
-                                    <option value="10">10 secondi</option>
-                                    <option value="15">15 secondi</option>
-                                    <option value="30">30 secondi</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="gen-controls">
-                            <button class="gen-btn gen-btn-primary"   onclick="generateVideo()">🎬 Genera Video</button>
-                            <button class="gen-btn gen-btn-secondary" onclick="generateStoryboard()">📋 Storyboard</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="preview-box" id="videoPreviewBox">
-                    <div class="placeholder">Il video generato apparirà qui</div>
-                </div>
-            </div>
-
-            <!-- AI Avatar Panel -->
-            <div class="ai-panel" id="aiPanelAvatar">
-                <div class="prompt-builder">
-                    <div class="prompt-header">🎭 Seleziona o Carica Avatar</div>
-                    <div class="prompt-body">
-                        <div class="avatar-grid">
-                            <div class="avatar-card active" onclick="selAvatar(this,'default')">
-                                <div class="avatar-img">👤</div>
-                                <div class="avatar-name">Default</div>
-                            </div>
-                            <div class="avatar-card" onclick="selAvatar(this,'business')">
-                                <div class="avatar-img">👔</div>
-                                <div class="avatar-name">Business</div>
-                            </div>
-                            <div class="avatar-card" onclick="selAvatar(this,'casual')">
-                                <div class="avatar-img">😎</div>
-                                <div class="avatar-name">Casual</div>
-                            </div>
-                            <div class="avatar-card" onclick="selAvatar(this,'formal')">
-                                <div class="avatar-img">🤵</div>
-                                <div class="avatar-name">Formal</div>
-                            </div>
-                            <div class="avatar-card" onclick="selAvatar(this,'creative')">
-                                <div class="avatar-img">🎨</div>
-                                <div class="avatar-name">Creative</div>
-                            </div>
-                            <div class="avatar-card avatar-upload" onclick="document.getElementById('avatarUpload').click()">
-                                <div class="avatar-img">+</div>
-                                <div class="avatar-name">Importa</div>
-                                <input type="file" id="avatarUpload" style="display:none;" accept="image/*" onchange="handleAvatarUpload(event)">
-                            </div>
-                        </div>
-                        <div class="prompt-field">
-                            <div class="prompt-label"><span class="icon">📝</span> Genera Avatar da Descrizione</div>
-                            <textarea class="prompt-textarea" id="avatarPrompt"
-                                placeholder="Descrivi il tuo avatar ideale...&#10;Es: Donna 28 anni, capelli castani lunghi, occhiali, maglione beige"></textarea>
-                        </div>
-                        <div class="gen-controls">
-                            <button class="gen-btn gen-btn-primary" onclick="generateAvatar()">✨ Genera Avatar</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="margin-top:16px;">
-                    <div class="prompt-header">🌆 Ambienti / Scene</div>
-                    <div class="prompt-body" style="background:var(--bg-tertiary);border-radius:0 0 12px 12px;border:1px solid var(--border);border-top:none;padding:16px;">
-                        <div class="scene-grid">
-                            <div class="scene-card active" onclick="selScene(this,'studio')">
-                                <div class="scene-preview">🏢</div>
-                                <div class="scene-label">Studio</div>
-                            </div>
-                            <div class="scene-card" onclick="selScene(this,'nature')">
-                                <div class="scene-preview">🌿</div>
-                                <div class="scene-label">Natura</div>
-                            </div>
-                            <div class="scene-card" onclick="selScene(this,'city')">
-                                <div class="scene-preview">🏙️</div>
-                                <div class="scene-label">Città</div>
-                            </div>
-                            <div class="scene-card" onclick="selScene(this,'home')">
-                                <div class="scene-preview">🏠</div>
-                                <div class="scene-label">Casa</div>
-                            </div>
-                            <div class="scene-card" onclick="selScene(this,'space')">
-                                <div class="scene-preview">🚀</div>
-                                <div class="scene-label">Spazio</div>
-                            </div>
-                            <div class="scene-card" onclick="selScene(this,'custom')">
-                                <div class="scene-preview">✨</div>
-                                <div class="scene-label">Custom</div>
-                            </div>
-                        </div>
-                        <div class="prompt-field" style="margin-top:12px;">
-                            <textarea class="prompt-textarea" id="scenePrompt"
-                                placeholder="Descrivi la tua scena personalizzata..."></textarea>
-                        </div>
-                        <div class="gen-controls">
-                            <button class="gen-btn gen-btn-secondary" onclick="generateScene()">🌆 Genera Scena</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- LIP SYNC -->
-        <div class="panel-section">
-            <div class="panel-title">👄 Lip Sync AI <span class="badge-pro">PRO</span></div>
-
-            <div class="form-group">
-                <label class="form-label">Metodo Input Audio</label>
-                <div class="voice-grid">
-                    <div class="voice-card active" onclick="selVoice(this,'upload')" id="vc-upload">
-                        <div class="v-avatar">📁</div>
-                        <div class="v-name">Upload</div>
-                        <div class="v-lang">File audio</div>
-                    </div>
-                    <div class="voice-card" onclick="selVoice(this,'tts')" id="vc-tts">
-                        <div class="v-avatar">🎙️</div>
-                        <div class="v-name">TTS</div>
-                        <div class="v-lang">Text to Speech</div>
-                    </div>
-                    <div class="voice-card" onclick="selVoice(this,'record')" id="vc-record">
-                        <div class="v-avatar">🎤</div>
-                        <div class="v-name">Registra</div>
-                        <div class="v-lang">Microfono</div>
-                    </div>
-                    <div class="voice-card" onclick="selVoice(this,'clone')" id="vc-clone">
-                        <div class="v-avatar">🎭</div>
-                        <div class="v-name">Clone</div>
-                        <div class="v-lang">Voice Clone</div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Upload Audio -->
-            <div class="form-group" id="grpUpload">
-                <label class="form-label">File Audio</label>
-                <div class="file-drop" id="audioDrop">
-                    <input type="file" accept="audio/*" id="audioInput" onchange="handleAudio(event)">
-                    <div class="file-drop-zone" id="audioDropZone">
-                        <div style="font-size:24px;margin-bottom:8px;">📤</div>
-                        <div style="font-size:13px;color:var(--text-2);" id="audioDropText">Trascina audio o clicca</div>
-                        <div id="audioName" style="font-size:12px;color:var(--accent);margin-top:4px;display:none;"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- TTS -->
-            <div class="form-group hidden" id="grpTTS">
-                <label class="form-label">Testo da Sintetizzare</label>
-                <textarea class="form-textarea" id="ttsText" placeholder="Scrivi il testo che vuoi far pronunciare..." oninput="onTTSInput()"></textarea>
-                <div style="display:flex;gap:8px;margin-top:8px;">
-                    <select class="form-select" id="ttsLang">
-                        <option value="it-IT">🇮🇹 Italiano</option>
-                        <option value="en-US">🇺🇸 English</option>
-                        <option value="es-ES">🇪🇸 Español</option>
-                        <option value="fr-FR">🇫🇷 Français</option>
-                        <option value="de-DE">🇩🇪 Deutsch</option>
-                    </select>
-                    <select class="form-select" id="ttsGender">
-                        <option value="female">Femminile</option>
-                        <option value="male">Maschile</option>
-                    </select>
-                </div>
-                <button class="btn btn-primary" style="width:100%;margin-top:10px;justify-content:center;"
-                        onclick="generateTTS()" id="ttsBtn" disabled>🎙️ Genera Voce</button>
-            </div>
-
-            <!-- Record -->
-            <div class="form-group hidden" id="grpRecord">
-                <label class="form-label">Registrazione Microfono</label>
-                <button class="btn btn-primary" style="width:100%;justify-content:center;"
-                        id="recBtn" onclick="toggleRec()">🔴 Inizia Registrazione</button>
-                <div id="recStatus" style="text-align:center;margin-top:8px;font-size:12px;color:var(--text-3);"></div>
-            </div>
-
-            <!-- Clone -->
-            <div class="form-group hidden" id="grpClone">
-                <label class="form-label">Voice Clone</label>
-                <div class="file-drop">
-                    <input type="file" accept="audio/*" onchange="handleClone(event)">
-                    <div class="file-drop-zone">
-                        <div style="font-size:24px;margin-bottom:8px;">🎭</div>
-                        <div style="font-size:13px;color:var(--text-2);">Carica sample vocale (10s min)</div>
-                    </div>
-                </div>
-                <div style="margin-top:8px;font-size:12px;color:var(--text-3);">ℹ️ Servizio disponibile con ElevenLabs API</div>
-            </div>
-        </div>
-
-        <!-- ADVANCED PARAMS -->
-        <div class="panel-section">
-            <div class="panel-title">⚙️ Parametri Avanzati</div>
-            <div class="form-group">
-                <label class="form-label">Qualità Lip Sync</label>
-                <div class="slider-wrap">
-                    <input type="range" class="slider" min="1" max="100" value="85" id="qualSlider" oninput="updateSlider(this,'qualVal')">
-                    <span class="slider-val" id="qualVal">85%</span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Espressione Facciale</label>
-                <div class="slider-wrap">
-                    <input type="range" class="slider" min="0" max="100" value="70" id="exprSlider" oninput="updateSlider(this,'exprVal')">
-                    <span class="slider-val" id="exprVal">70%</span>
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Sincronizzazione</label>
-                <div class="slider-wrap">
-                    <input type="range" class="slider" min="0" max="100" value="90" id="syncSlider" oninput="updateSlider(this,'syncVal')">
-                    <span class="slider-val" id="syncVal">90%</span>
-                </div>
-            </div>
-            <div class="toggle-row">
-                <span class="toggle-label">Face Enhancement</span>
-                <label class="toggle"><input type="checkbox" checked id="faceEnhance"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-row">
-                <span class="toggle-label">Stabilizzazione</span>
-                <label class="toggle"><input type="checkbox" checked id="stabilize"><span class="toggle-slider"></span></label>
-            </div>
-            <div class="toggle-row">
-                <span class="toggle-label">Rimozione Sfondo</span>
-                <label class="toggle"><input type="checkbox" id="removeBg"><span class="toggle-slider"></span></label>
-            </div>
-        </div>
-
-        <!-- EXPORT -->
-        <div class="panel-section">
-            <div class="panel-title">⬇️ Esportazione</div>
-            <div class="export-grid">
-                <div class="export-opt active" onclick="selExport(this,'720p')">
-                    <div class="exp-quality">720p</div>
-                    <div class="exp-format">MP4</div>
-                </div>
-                <div class="export-opt" onclick="selExport(this,'1080p')">
-                    <div class="exp-quality">1080p</div>
-                    <div class="exp-format">MP4</div>
-                </div>
-                <div class="export-opt" onclick="selExport(this,'4k')">
-                    <div class="exp-quality">4K</div>
-                    <div class="exp-format">H.265</div>
-                </div>
-            </div>
-            <button class="btn btn-primary btn-full" style="margin-top:16px;" onclick="runLipSync()">👄 Genera LipSync con Kling</button>
-            <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="startProcessing()">⬇ Esporta senza LipSync</button>
-        </div>
-
-    </aside><!-- end right-panel -->
-</div><!-- end main -->
-
-<!-- ==================== PROCESSING OVERLAY ==================== -->
-<div class="processing" id="processing">
-    <div class="proc-spinner"></div>
-    <div class="proc-title" id="procTitle">Generazione in corso...</div>
-    <div class="proc-sub"   id="procSub">Analisi video sorgente</div>
-    <div class="progress-bar"><div class="progress-fill" id="procProgress"></div></div>
-    <div class="proc-steps">
-        <div class="proc-step active" id="step1"><div class="step-icon">📤</div><div class="step-name">Upload</div></div>
-        <div class="proc-step"        id="step2"><div class="step-icon">🧠</div><div class="step-name">AI Analysis</div></div>
-        <div class="proc-step"        id="step3"><div class="step-icon">👄</div><div class="step-name">Lip Sync</div></div>
-        <div class="proc-step"        id="step4"><div class="step-icon">✨</div><div class="step-name">Render</div></div>
+    <!-- ADVANCED -->
+    <div class="ps">
+      <div class="ptitle">⚙️ Parametri</div>
+      <div class="fg"><label class="fl">Qualità Lip Sync</label><div class="sw"><input type="range" class="sl" min="1" max="100" value="85" oninput="updateSlider(this,'qualVal')"><span class="sv" id="qualVal">85%</span></div></div>
+      <div class="fg"><label class="fl">Espressione Facciale</label><div class="sw"><input type="range" class="sl" min="0" max="100" value="70" oninput="updateSlider(this,'exprVal')"><span class="sv" id="exprVal">70%</span></div></div>
+      <div class="tr"><span class="trl">Face Enhancement</span><label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label></div>
+      <div class="tr"><span class="trl">Stabilizzazione</span><label class="tog"><input type="checkbox" checked><span class="tog-sl"></span></label></div>
     </div>
+
+    <!-- EXPORT -->
+    <div class="ps">
+      <div class="ptitle">⬇️ Esportazione</div>
+      <div class="ex-grid">
+        <div class="exo active" onclick="selExport(this,'720p')"><div class="exq">720p</div><div class="exf">MP4</div></div>
+        <div class="exo" onclick="selExport(this,'1080p')"><div class="exq">1080p</div><div class="exf">MP4</div></div>
+        <div class="exo" onclick="selExport(this,'4k')"><div class="exq">4K</div><div class="exf">H.265</div></div>
+      </div>
+      <button class="btn bp bfull" style="margin-top:16px" onclick="runLipSync()">👄 Genera LipSync</button>
+      <button class="btn bs bfull" style="margin-top:8px" onclick="exportContent()">⬇ Esporta</button>
+    </div>
+
+  </aside>
 </div>
 
-<!-- ==================== API KEY MODAL ==================== -->
-<div class="modal-bg" id="apiModal">
-    <div class="modal">
-        <div class="modal-head"><div class="modal-title">🔑 Token Hugging Face</div></div>
-        <div class="modal-body">
-
-            <!-- HF — unico token necessario -->
-            <div style="padding:14px;background:rgba(255,173,31,0.07);border:1px solid rgba(255,173,31,0.25);border-radius:12px;margin-bottom:16px;">
-                <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
-                    <div style="width:32px;height:32px;background:linear-gradient(135deg,#ffad1f,#ff6b35);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;">🤗</div>
-                    <div>
-                        <div style="font-size:14px;font-weight:700;">Hugging Face Token <span style="font-size:10px;padding:2px 7px;background:var(--success);border-radius:20px;color:white;margin-left:4px;">GRATIS</span></div>
-                        <div style="font-size:11px;color:var(--text-3);">Immagini · Avatar · Scene via FLUX.1-schnell</div>
-                    </div>
-                </div>
-                <div style="font-size:11px;color:var(--text-2);line-height:1.7;padding:8px;background:var(--bg-tertiary);border-radius:8px;margin-bottom:10px;">
-                    Token <b>read-only</b> gratuito — nessun piano a pagamento richiesto.<br>
-                    <span style="color:var(--success);">✓ Ottieni il token su huggingface.co/settings/tokens</span>
-                </div>
-                <label class="form-label">HF Token (read-only)</label>
-                <input type="password" class="form-input" id="hfKey" placeholder="hf_...">
-            </div>
-
-            <div style="padding:12px;background:rgba(99,241,150,0.07);border:1px solid rgba(99,241,150,0.2);border-radius:10px;font-size:12px;color:var(--text-2);line-height:1.8;margin-top:12px;">
-                ✅ Con questo token gratuito puoi generare:<br>
-                &nbsp;&nbsp;🖼️ <b>Immagini</b> — FLUX.1-schnell<br>
-                &nbsp;&nbsp;🎭 <b>Avatar</b> — ritratti fotorealistici<br>
-                &nbsp;&nbsp;🌆 <b>Scene</b> — ambienti cinematografici<br>
-                &nbsp;&nbsp;🎬 <b>Video</b> — CogVideoX / LTX-Video
-            </div>
+<!-- API MODAL -->
+<div class="mbg" id="apiModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">🔑 Token Hugging Face</div></div>
+    <div class="mb">
+      <div style="padding:14px;background:rgba(255,173,31,0.07);border:1px solid rgba(255,173,31,0.25);border-radius:12px;margin-bottom:16px">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+          <div style="width:32px;height:32px;background:linear-gradient(135deg,#ffad1f,#ff6b35);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px">🤗</div>
+          <div><div style="font-size:14px;font-weight:700">Hugging Face <span style="font-size:10px;padding:2px 7px;background:var(--ok);border-radius:20px;color:#fff;margin-left:4px">GRATIS</span></div><div style="font-size:11px;color:var(--txt3)">Immagini · Avatar · Scene · Video</div></div>
         </div>
-        <div class="modal-foot">
-            <button class="btn btn-ghost"   onclick="closeApiModal()">Annulla</button>
-            <button class="btn btn-primary" onclick="saveApiKeys()">Salva</button>
+        <div style="font-size:11px;color:var(--txt2);padding:8px;background:var(--bg3);border-radius:8px;margin-bottom:10px;line-height:1.7">
+          Token gratuito — nessun piano a pagamento.<br>
+          <span style="color:var(--ok)">✓ huggingface.co/settings/tokens → copia "AI video"</span>
         </div>
+        <label class="fl">HF Token</label>
+        <input type="password" class="fi" id="hfKey" placeholder="hf_...">
+      </div>
+      <div style="padding:12px;background:rgba(99,241,150,0.07);border:1px solid rgba(99,241,150,0.2);border-radius:10px;font-size:12px;color:var(--txt2);line-height:1.8">
+        ✅ Con questo token gratuito generi:<br>
+        &nbsp;&nbsp;🖼️ <b>Immagini</b> — FLUX.1-schnell<br>
+        &nbsp;&nbsp;🎭 <b>Avatar</b> — ritratti fotorealistici<br>
+        &nbsp;&nbsp;🌆 <b>Scene</b> — ambienti cinematografici<br>
+        &nbsp;&nbsp;🎬 <b>Video</b> — CogVideoX / LTX-Video
+      </div>
     </div>
+    <div class="mf">
+      <button class="btn bg2" onclick="closeApiModal()">Annulla</button>
+      <button class="btn bp" onclick="saveApiKeys()">✅ Salva Token</button>
+    </div>
+  </div>
 </div>
 
-<!-- ==================== RESULT MODAL ==================== -->
-<div class="modal-bg" id="resultModal">
-    <div class="modal modal-lg">
-        <div class="modal-head"><div class="modal-title">🎉 Contenuto Generato!</div></div>
-        <div class="modal-body">
-            <div id="resultContainer" style="border-radius:12px;overflow:hidden;background:#000;">
-                <video id="resultVideo" controls style="width:100%;display:none;"></video>
-                <img   id="resultImage"          style="width:100%;display:none;">
-            </div>
-            <div style="margin-top:16px;display:flex;gap:12px;">
-                <button class="btn btn-primary"   style="flex:1;justify-content:center;" onclick="downloadResult()">⬇ Scarica</button>
-                <button class="btn btn-secondary" style="flex:1;justify-content:center;" onclick="useInProject()">🎬 Usa nel Progetto</button>
-                <button class="btn btn-ghost"     style="flex:1;justify-content:center;" onclick="closeResult()">Nuovo</button>
-            </div>
-        </div>
+<!-- TEMPLATE MODAL -->
+<div class="mbg" id="templateModal">
+  <div class="modal modal-lg">
+    <div class="mh"><div class="mt">🎨 Scegli Template</div></div>
+    <div class="mb">
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+        <div class="tpl" onclick="loadTemplate('news')"><div style="font-size:32px;margin-bottom:8px">📺</div><div style="font-weight:600;font-size:13px">News Anchor</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Presentatore TV</div></div>
+        <div class="tpl" onclick="loadTemplate('tutorial')"><div style="font-size:32px;margin-bottom:8px">🎓</div><div style="font-weight:600;font-size:13px">Tutorial</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Educativo</div></div>
+        <div class="tpl" onclick="loadTemplate('promo')"><div style="font-size:32px;margin-bottom:8px">📢</div><div style="font-weight:600;font-size:13px">Promo</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Marketing</div></div>
+        <div class="tpl" onclick="loadTemplate('vlog')"><div style="font-size:32px;margin-bottom:8px">📱</div><div style="font-weight:600;font-size:13px">Vlog</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Personale</div></div>
+        <div class="tpl" onclick="loadTemplate('product')"><div style="font-size:32px;margin-bottom:8px">📦</div><div style="font-weight:600;font-size:13px">Product</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">E-commerce</div></div>
+        <div class="tpl" onclick="loadTemplate('gaming')"><div style="font-size:32px;margin-bottom:8px">🎮</div><div style="font-weight:600;font-size:13px">Gaming</div><div style="font-size:11px;color:var(--txt3);margin-top:4px">Streamer</div></div>
+      </div>
     </div>
+    <div class="mf"><button class="btn bg2" onclick="document.getElementById('templateModal').classList.remove('active')">Chiudi</button></div>
+  </div>
 </div>
 
-<!-- ==================== TEMPLATE MODAL ==================== -->
-<div class="modal-bg" id="templateModal">
-    <div class="modal modal-lg">
-        <div class="modal-head"><div class="modal-title">🎨 Scegli un Template</div></div>
-        <div class="modal-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;">
-                <div class="tpl-card" onclick="loadTemplate('news')">
-                    <div style="font-size:32px;margin-bottom:8px;">📺</div>
-                    <div style="font-weight:600;font-size:13px;">News Anchor</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Presentatore professionale</div>
-                </div>
-                <div class="tpl-card" onclick="loadTemplate('tutorial')">
-                    <div style="font-size:32px;margin-bottom:8px;">🎓</div>
-                    <div style="font-weight:600;font-size:13px;">Tutorial</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Educativo</div>
-                </div>
-                <div class="tpl-card" onclick="loadTemplate('promo')">
-                    <div style="font-size:32px;margin-bottom:8px;">📢</div>
-                    <div style="font-weight:600;font-size:13px;">Promo</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Marketing</div>
-                </div>
-                <div class="tpl-card" onclick="loadTemplate('vlog')">
-                    <div style="font-size:32px;margin-bottom:8px;">📱</div>
-                    <div style="font-weight:600;font-size:13px;">Vlog</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Personale</div>
-                </div>
-                <div class="tpl-card" onclick="loadTemplate('product')">
-                    <div style="font-size:32px;margin-bottom:8px;">📦</div>
-                    <div style="font-weight:600;font-size:13px;">Product</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-top:4px;">E-commerce</div>
-                </div>
-                <div class="tpl-card" onclick="loadTemplate('gaming')">
-                    <div style="font-size:32px;margin-bottom:8px;">🎮</div>
-                    <div style="font-weight:600;font-size:13px;">Gaming</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-top:4px;">Streamer</div>
-                </div>
-            </div>
-        </div>
-        <div class="modal-foot">
-            <button class="btn btn-ghost" onclick="closeTemplateModal()">Chiudi</button>
-        </div>
+<!-- PROFILE MODAL -->
+<div class="mbg" id="profileModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">👤 Profilo</div></div>
+    <div class="mb">
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="width:80px;height:80px;border-radius:50%;background:var(--grad);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:36px">👤</div>
+        <div style="font-size:18px;font-weight:700" id="profileName">Utente</div>
+        <div style="font-size:13px;color:var(--txt3)" id="profileEmail">user@example.com</div>
+      </div>
     </div>
+    <div class="mf"><button class="btn bg2" onclick="document.getElementById('profileModal').classList.remove('active')">Chiudi</button></div>
+  </div>
 </div>
 
-<!-- ==================== PROFILE MODAL ==================== -->
-<div class="modal-bg" id="profileModal">
-    <div class="modal">
-        <div class="modal-head"><div class="modal-title">👤 Il Tuo Profilo</div></div>
-        <div class="modal-body">
-            <div style="text-align:center;margin-bottom:20px;">
-                <div style="width:80px;height:80px;border-radius:50%;background:var(--gradient-primary);margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:36px;">👤</div>
-                <div style="font-size:18px;font-weight:700;" id="profileName">Utente</div>
-                <div style="font-size:13px;color:var(--text-3);" id="profileEmail">user@example.com</div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Nome</label>
-                <input type="text" class="form-input" id="editName" placeholder="Il tuo nome">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Email</label>
-                <input type="email" class="form-input" id="editEmail" placeholder="La tua email">
-            </div>
-            <div style="padding:12px;background:var(--bg-tertiary);border-radius:8px;margin-top:12px;">
-                <div style="font-size:12px;color:var(--text-3);margin-bottom:8px;">📊 Statistiche</div>
-                <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center;">
-                    <div><div style="font-size:20px;font-weight:700;color:var(--accent);"  id="statProjects">0</div><div style="font-size:11px;color:var(--text-3);">Progetti</div></div>
-                    <div><div style="font-size:20px;font-weight:700;color:var(--success);" id="statVideos">0</div><div style="font-size:11px;color:var(--text-3);">Video</div></div>
-                    <div><div style="font-size:20px;font-weight:700;color:var(--warning);" id="statImages">0</div><div style="font-size:11px;color:var(--text-3);">Immagini</div></div>
-                </div>
-            </div>
+<!-- BILLING MODAL -->
+<div class="mbg" id="billingModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">💳 Abbonamento</div></div>
+    <div class="mb">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="padding:16px;background:var(--bg3);border:2px solid var(--brd);border-radius:12px;text-align:center">
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">Free</div>
+          <div style="font-size:24px;font-weight:800;color:var(--acc)">€0</div>
+          <div style="font-size:12px;color:var(--txt3);margin-bottom:12px">/mese</div>
+          <div style="font-size:12px;color:var(--txt2);line-height:1.8;text-align:left">✓ 3 video gratuiti<br>✓ Immagini illimitate<br>✓ 720p export</div>
+          <div style="margin-top:12px;padding:4px 12px;background:var(--ok);color:#fff;border-radius:20px;font-size:11px;font-weight:700;display:inline-block">Attivo</div>
         </div>
-        <div class="modal-foot">
-            <button class="btn btn-ghost"   onclick="closeProfileModal()">Chiudi</button>
-            <button class="btn btn-primary" onclick="saveProfile()">Salva</button>
+        <div style="padding:16px;background:var(--bg3);border:2px solid var(--acc);border-radius:12px;text-align:center;position:relative">
+          <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);padding:2px 12px;background:var(--acc);color:#fff;border-radius:20px;font-size:10px;font-weight:700">POPOLARE</div>
+          <div style="font-size:14px;font-weight:700;margin-bottom:4px">Pro</div>
+          <div style="font-size:24px;font-weight:800;color:var(--acc)">€14.99</div>
+          <div style="font-size:12px;color:var(--txt3);margin-bottom:12px">/mese</div>
+          <div style="font-size:12px;color:var(--txt2);line-height:1.8;text-align:left">✓ Video illimitati<br>✓ 4K export<br>✓ LipSync avanzato<br>✓ Priorità GPU</div>
+          <button class="btn bp" style="width:100%;margin-top:12px" onclick="startCheckout('pro_monthly')">Abbonati</button>
         </div>
+      </div>
     </div>
+    <div class="mf"><button class="btn bg2" onclick="document.getElementById('billingModal').classList.remove('active')">Chiudi</button></div>
+  </div>
 </div>
 
-<!-- ==================== BILLING MODAL ==================== -->
-<div class="modal-bg" id="billingModal">
-    <div class="modal">
-        <div class="modal-head"><div class="modal-title">💳 Piani &amp; Abbonamento</div></div>
-        <div class="modal-body">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div style="padding:16px;background:var(--bg-tertiary);border:2px solid var(--border);border-radius:12px;text-align:center;">
-                    <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Free</div>
-                    <div style="font-size:24px;font-weight:800;color:var(--accent);">€0</div>
-                    <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;">/mese</div>
-                    <div style="font-size:12px;color:var(--text-2);line-height:1.8;text-align:left;">
-                        ✓ 5GB Storage<br>
-                        ✓ 10 video/mese<br>
-                        ✓ 720p export<br>
-                        ✓ Watermark
-                    </div>
-                    <div style="margin-top:12px;padding:4px 12px;background:var(--success);color:white;border-radius:20px;font-size:11px;font-weight:700;display:inline-block;">Attivo</div>
-                </div>
-                <div style="padding:16px;background:var(--bg-tertiary);border:2px solid var(--accent);border-radius:12px;text-align:center;position:relative;">
-                    <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);padding:2px 12px;background:var(--accent);color:white;border-radius:20px;font-size:10px;font-weight:700;">POPOLARE</div>
-                    <div style="font-size:14px;font-weight:700;margin-bottom:4px;">Pro</div>
-                    <div style="font-size:24px;font-weight:800;color:var(--accent);">€19</div>
-                    <div style="font-size:12px;color:var(--text-3);margin-bottom:12px;">/mese</div>
-                    <div style="font-size:12px;color:var(--text-2);line-height:1.8;text-align:left;">
-                        ✓ 50GB Storage<br>
-                        ✓ Video illimitati<br>
-                        ✓ 4K export<br>
-                        ✓ No Watermark<br>
-                        ✓ API priority
-                    </div>
-                    <button class="btn btn-primary" style="width:100%;margin-top:12px;"
-                            onclick="toast('info','Pro','Upgrade in arrivo!')">Upgrade</button>
-                </div>
-            </div>
-        </div>
-        <div class="modal-foot">
-            <button class="btn btn-ghost" onclick="closeBillingModal()">Chiudi</button>
-        </div>
+<!-- UPGRADE MODAL -->
+<div class="mbg" id="upgradeModal">
+  <div class="modal">
+    <div class="mh"><div class="mt">⭐ Passa a Pro</div></div>
+    <div class="mb"><p id="upgradeMsg" style="color:var(--txt2);font-size:14px;margin-bottom:20px">Hai esaurito i 3 video gratuiti.</p>
+      <button class="btn bp bfull" onclick="startCheckout('pro_monthly')">Abbonati a Pro — €14.99/mese</button>
     </div>
+    <div class="mf"><button class="btn bg2" onclick="document.getElementById('upgradeModal').classList.remove('active')">Forse dopo</button></div>
+  </div>
 </div>
 
-
-<!-- ==================== UPGRADE MODAL ==================== -->
-<div class="modal-bg" id="upgradeModal">
-    <div class="modal">
-        <div class="modal-head"><div class="modal-title">⭐ Passa a Pro</div></div>
-        <div class="modal-body">
-            <p id="upgradeMsg" style="color:var(--text-2);font-size:14px;margin-bottom:20px;">
-                Hai esaurito i 3 video gratuiti. Passa a Pro per continuare.
-            </p>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-                <div style="padding:16px;background:var(--bg-tertiary);border:2px solid var(--border);border-radius:12px;text-align:center;">
-                    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Free</div>
-                    <div style="font-size:28px;font-weight:800;">€0</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;">/mese</div>
-                    <div style="font-size:12px;color:var(--text-2);text-align:left;line-height:1.8;">
-                        ✓ 3 video gratis<br>✓ Immagini illimitate<br>✓ 720p<br>✗ LipSync Kling<br>✗ 1080p
-                    </div>
-                    <div style="margin-top:12px;padding:6px;background:var(--bg-hover);border-radius:8px;font-size:12px;color:var(--text-3);">Piano attuale</div>
-                </div>
-                <div style="padding:16px;background:var(--bg-tertiary);border:2px solid var(--accent);border-radius:12px;text-align:center;position:relative;">
-                    <div style="position:absolute;top:-10px;left:50%;transform:translateX(-50%);padding:2px 12px;background:var(--accent);color:white;border-radius:20px;font-size:10px;font-weight:700;">POPOLARE</div>
-                    <div style="font-size:13px;font-weight:700;margin-bottom:4px;">Pro</div>
-                    <div style="font-size:28px;font-weight:800;color:var(--accent);">€14.99</div>
-                    <div style="font-size:11px;color:var(--text-3);margin-bottom:12px;">/mese</div>
-                    <div style="font-size:12px;color:var(--text-2);text-align:left;line-height:1.8;">
-                        ✓ Video illimitati<br>✓ Immagini illimitate<br>✓ 720p + 1080p<br>✓ LipSync Kling<br>✓ Galleria cloud
-                    </div>
-                    <button class="btn btn-primary" style="width:100%;margin-top:12px;"
-                            onclick="startCheckout('pro_monthly')">Abbonati ora</button>
-                </div>
-            </div>
-        </div>
-        <div class="modal-foot">
-            <button class="btn btn-ghost" onclick="closeUpgradeModal()">Forse dopo</button>
-        </div>
-    </div>
+<!-- PROCESSING -->
+<div class="proc" id="processing">
+  <div class="proc-spin"></div>
+  <div class="proc-t" id="procTitle">Generazione in corso...</div>
+  <div class="proc-s" id="procSub">Attendere prego</div>
 </div>
 
-<!-- ==================== TOAST CONTAINER ==================== -->
+<!-- TOAST -->
 <div class="toast-wrap" id="toastWrap"></div>
 
-<!-- ==================== SCRIPTS (load order matters) ==================== -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-<script src="config.js"></script>
-<script src="state.js"></script>
-<script src="supabase.js"></script>
-    <script src="stripe.js"></script>
-    <script src="auth.js"></script>
-<script src="ui.js"></script>
-<script src="media.js"></script>
-<script src="ai-generation.js"></script>
-<script src="gallery.js"></script>
-<script src="api-templates.js"></script>
-
 <script>
-/* ==================== BOOTSTRAP ==================== */
-document.addEventListener('DOMContentLoaded', function () {
-    /* Render initial projects */
-    renderProjects();
+// ============================================================
+// CONFIG
+// ============================================================
+window.APP_CONFIG = {
+  supabaseUrl:  'https://zuwaotncezfejrhmfbeo.supabase.co',
+  supabaseAnon: 'sb_publishable_CAg9TmAmYgT0a_6v1z075Q_YmhGUQ-R',
+  stripePriceIds: { pro_monthly: 'price_XXXXXXXXXXXXXXXX' },
+  appName: 'AI Video Studio Pro',
+  freeCredits: 3
+};
 
-    /* Close user menu on outside click */
-    document.addEventListener('click', function (e) {
-        if (!e.target.closest('.user-badge') && !e.target.closest('.user-menu')) {
-            document.getElementById('userMenu').classList.remove('active');
-        }
-    });
+// ============================================================
+// STATE
+// ============================================================
+var state = {
+  user: null, apiKeys: {}, projects: [], generatedContent: [],
+  currentAvatar: 'default', currentScene: 'studio',
+  exportQuality: '720p', isRecording: false,
+  mediaRecorder: null, recordedChunks: [],
+  isPlaying: false, duration: 0
+};
 
-    /* Close any modal on backdrop click */
-    var modals = document.querySelectorAll('.modal-bg');
-    for (var i = 0; i < modals.length; i++) {
-        modals[i].addEventListener('click', function (e) {
-            if (e.target === this) this.classList.remove('active');
-        });
-    }
+// Carica token HF salvato in localStorage
+(function(){ try { var hf = localStorage.getItem('hf_token'); if(hf) state.apiKeys.hf = hf; } catch(e){} })();
+
+// ============================================================
+// SUPABASE
+// ============================================================
+var _sb = null;
+function getSB() {
+  if(_sb) return _sb;
+  var cfg = window.APP_CONFIG;
+  if(!cfg || !cfg.supabaseUrl || cfg.supabaseUrl.includes('XXXX')) return null;
+  try { _sb = window.supabase.createClient(cfg.supabaseUrl, cfg.supabaseAnon); return _sb; } catch(e){ return null; }
+}
+function hasSB() { return !!getSB(); }
+async function sbSignIn(email,pw){ var sb=getSB(); if(!sb) throw new Error('Supabase non config'); var {data,error}=await sb.auth.signInWithPassword({email,password:pw}); if(error) throw error; return data.user; }
+async function sbSignUp(email,pw,name){ var sb=getSB(); if(!sb) throw new Error('Supabase non config'); var {data,error}=await sb.auth.signUp({email,password:pw,options:{data:{full_name:name}}}); if(error) throw error; return data.user; }
+async function sbSignOut(){ var sb=getSB(); if(!sb) return; await sb.auth.signOut(); }
+async function sbGetUser(){ var sb=getSB(); if(!sb) return null; var {data}=await sb.auth.getUser(); return data&&data.user?data.user:null; }
+async function sbGetCredits(){ var sb=getSB(); if(!sb) return {credits:3,plan:'free'}; var u=await sbGetUser(); if(!u) return {credits:3,plan:'free'}; var {data}=await sb.from('user_credits').select('credits,plan').eq('user_id',u.id).single(); return data||{credits:3,plan:'free'}; }
+async function sbDeductCredit(){ var sb=getSB(); if(!sb) return true; var u=await sbGetUser(); if(!u) return true; var {data}=await sb.from('user_credits').select('credits').eq('user_id',u.id).single(); if(!data||data.credits<=0) return false; await sb.from('user_credits').update({credits:data.credits-1}).eq('user_id',u.id); return true; }
+
+// ============================================================
+// AUTH
+// ============================================================
+function switchLoginTab(el,tab){ document.querySelectorAll('.ltab').forEach(function(t){t.classList.remove('active')}); el.classList.add('active'); document.getElementById('loginForm').classList.toggle('active',tab==='login'); document.getElementById('registerForm').classList.toggle('active',tab==='register'); }
+
+async function doLogin(){
+  var email=document.getElementById('loginEmail').value.trim();
+  var pw=document.getElementById('loginPassword').value;
+  if(!email||!pw){toast('err','Errore','Inserisci email e password');return;}
+  var btn=document.querySelector('#loginForm .bp'); btn.disabled=true; btn.innerHTML='⏳ Accesso...';
+  try {
+    if(hasSB()){var u=await sbSignIn(email,pw); state.user={name:u.user_metadata?.full_name||email.split('@')[0],email:u.email,id:u.id,plan:'free'};}
+    else{state.user={name:email.split('@')[0],email:email,id:'demo_'+Date.now(),plan:'free'};}
+    await showApp(); toast('ok','Bentornato!','Ciao '+state.user.name);
+  } catch(e){toast('err','Login fallito',e.message);}
+  finally{btn.disabled=false;btn.innerHTML='🔐 Accedi';}
+}
+
+async function doRegister(){
+  var name=document.getElementById('regName').value.trim();
+  var email=document.getElementById('regEmail').value.trim();
+  var pw=document.getElementById('regPassword').value;
+  var pw2=document.getElementById('regPassword2').value;
+  if(!name||!email||!pw){toast('err','Errore','Compila tutti i campi');return;}
+  if(pw.length<8){toast('err','Errore','Password minimo 8 caratteri');return;}
+  if(pw!==pw2){toast('err','Errore','Le password non coincidono');return;}
+  var btn=document.querySelector('#registerForm .bp'); btn.disabled=true; btn.innerHTML='⏳ Registrazione...';
+  try {
+    if(hasSB()){var u=await sbSignUp(email,pw,name); state.user={name,email,id:u.id,plan:'free'}; var sb=getSB(); if(sb) await sb.from('user_credits').insert({user_id:u.id,credits:3,plan:'free'});}
+    else{state.user={name,email,id:'demo_'+Date.now(),plan:'free'};}
+    await showApp(); toast('ok','Account creato!','Benvenuto '+name+' — hai 3 video gratis');
+  } catch(e){toast('err','Registrazione fallita',e.message);}
+  finally{btn.disabled=false;btn.innerHTML='✨ Crea Account';}
+}
+
+async function socialLogin(p){ var sb=getSB(); if(!sb){toast('inf',p,'Configura Supabase per il login social');return;} var {error}=await sb.auth.signInWithOAuth({provider:p.toLowerCase(),options:{redirectTo:window.location.origin}}); if(error) toast('err','Errore',error.message); }
+
+async function showApp(){
+  document.getElementById('loginOverlay').classList.add('hidden');
+  document.getElementById('mainHeader').style.display='flex';
+  document.getElementById('mainApp').style.display='flex';
+  if(state.user){document.getElementById('userName').textContent=state.user.name; document.getElementById('userAvatar').textContent=state.user.name.charAt(0).toUpperCase();}
+  renderProjects();
+  if(hasSB()){ var c=await sbGetCredits(); updateCreditsUI(c); }
+  // Aggiorna stato API badge
+  updateApiBadge();
+  // Gestisci redirect Stripe
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('payment')==='success'){toast('ok','🎉 Abbonamento attivato!','Benvenuto in Pro');window.history.replaceState({},'',window.location.pathname);}
+  if(params.get('payment')==='cancelled'){toast('inf','Pagamento annullato','Sei nel piano Free');window.history.replaceState({},'',window.location.pathname);}
+}
+
+function updateCreditsUI(c){ var el=document.getElementById('creditsDisplay'); if(!el) return; if(c&&c.plan==='pro'){el.innerHTML='⭐ Pro';}else{el.innerHTML=(c?c.credits:3)+' video rimasti';} }
+function updateApiBadge(){ var s=document.getElementById('apiStatus'); var t=document.getElementById('apiStatusText'); if(state.apiKeys.hf){s.className='api-status api-ok';t.textContent='HF Attivo';}else{s.className='api-status api-warn';t.textContent='Configura API';} }
+
+async function doLogout(){ if(hasSB()) await sbSignOut(); state.user=null; document.getElementById('loginOverlay').classList.remove('hidden'); document.getElementById('mainHeader').style.display='none'; document.getElementById('mainApp').style.display='none'; document.getElementById('userMenu').classList.remove('active'); toast('inf','Logout','A presto!'); }
+
+function toggleUserMenu(){ document.getElementById('userMenu').classList.toggle('active'); }
+function showProfile(){ document.getElementById('userMenu').classList.remove('active'); if(state.user){document.getElementById('profileName').textContent=state.user.name; document.getElementById('profileEmail').textContent=state.user.email;} document.getElementById('profileModal').classList.add('active'); }
+function showBilling(){ document.getElementById('userMenu').classList.remove('active'); document.getElementById('billingModal').classList.add('active'); }
+
+// Auto-login
+document.addEventListener('DOMContentLoaded',async function(){
+  if(!hasSB()) return;
+  var u=await sbGetUser();
+  if(u){ state.user={name:u.user_metadata?.full_name||u.email.split('@')[0],email:u.email,id:u.id,plan:'free'}; await showApp(); }
+});
+
+// ============================================================
+// STRIPE
+// ============================================================
+async function checkCreditsOrBlock(feature){
+  var sb=getSB(); if(!sb) return true;
+  var c=await sbGetCredits(); if(!c) return true;
+  if(c.plan==='pro') return true;
+  if(c.credits<=0){ document.getElementById('upgradeMsg').textContent='Hai esaurito i crediti gratuiti. Passa a Pro per '+feature+' illimitati.'; document.getElementById('upgradeModal').classList.add('active'); return false; }
+  return true;
+}
+async function startCheckout(planKey){
+  var cfg=window.APP_CONFIG; if(!cfg||!cfg.stripePriceIds){toast('err','','Stripe non configurato');return;}
+  var priceId=cfg.stripePriceIds[planKey]; if(!priceId||priceId.includes('XXXX')){toast('err','','Price ID non configurato');return;}
+  var u=await sbGetUser(); if(!u){toast('err','','Devi essere loggato');return;}
+  try{ var res=await fetch('/api/stripe-checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({priceId,userId:u.id,email:u.email})}); var d=await res.json(); if(d.url) window.location.href=d.url; else throw new Error(d.error||'Errore'); }catch(e){toast('err','Errore pagamento',e.message);}
+}
+
+// ============================================================
+// UI
+// ============================================================
+function toast(type,title,msg){
+  var wrap=document.getElementById('toastWrap');
+  var t=document.createElement('div'); t.className='toast';
+  var icons={ok:'✓',err:'✕',inf:'ℹ'}; var cls={ok:'tok',err:'terr',inf:'tinf'};
+  t.innerHTML='<div class="ti '+cls[type]+'">'+icons[type]+'</div><div><div style="font-weight:600;font-size:14px">'+title+'</div><div style="font-size:13px;color:var(--txt2)">'+msg+'</div></div>';
+  wrap.appendChild(t);
+  setTimeout(function(){t.style.opacity='0';t.style.transform='translateX(20px)';setTimeout(function(){t.remove()},300);},4000);
+}
+
+function switchTab(btn,tab){
+  document.querySelectorAll('.nbtn').forEach(function(b){b.classList.remove('active')}); btn.classList.add('active');
+  document.getElementById('workspaceCreate').classList.toggle('hidden',tab!=='create');
+  document.getElementById('workspaceGallery').classList.toggle('hidden',tab!=='gallery');
+  if(tab==='templates') document.getElementById('templateModal').classList.add('active');
+  if(tab==='gallery') loadGallery();
+}
+
+function renderProjects(){
+  var list=document.getElementById('projectList'); if(!list) return;
+  if(!state.projects.length) state.projects=[{name:'Nuovo Progetto',date:'Oggi',active:true}];
+  list.innerHTML=state.projects.map(function(p,i){ return '<div class="pi'+(p.active?' active':'')+'" onclick="selProject(this,'+i+')"><div class="pt">'+(i===0?'🎬':'▶')+'</div><div><div style="font-weight:600;font-size:13px">'+p.name+'</div><div style="font-size:11px;color:var(--txt3)">'+p.date+'</div></div></div>'; }).join('');
+}
+function newProject(){ var name=prompt('Nome progetto:','Progetto '+(state.projects.length+1)); if(!name) return; state.projects.forEach(function(p){p.active=false;}); state.projects.unshift({name:name,date:'Oggi',active:true}); renderProjects(); toast('ok','Progetto creato',name); }
+function selProject(el,idx){ document.querySelectorAll('.pi').forEach(function(i){i.classList.remove('active')}); el.classList.add('active'); state.projects.forEach(function(p){p.active=false;}); state.projects[idx].active=true; toast('inf','Progetto',state.projects[idx].name); }
+
+function selTool(btn){ document.querySelectorAll('.tbtn').forEach(function(b){b.classList.remove('active')}); btn.classList.add('active'); }
+function undo(){ toast('inf','Undo','Azione annullata'); }
+function redo(){ toast('inf','Redo','Ripristinato'); }
+function toggleFullscreen(){ var w=document.getElementById('canvasWrapper'); if(!document.fullscreenElement) w.requestFullscreen().catch(function(){}); else document.exitFullscreen(); }
+function selExport(el,q){ document.querySelectorAll('.exo').forEach(function(o){o.classList.remove('active')}); el.classList.add('active'); state.exportQuality=q; toast('inf','Qualità','Esportazione: '+q); }
+function updateSlider(sl,id){ document.getElementById(id).textContent=sl.value+'%'; }
+
+// ============================================================
+// API MODAL
+// ============================================================
+function showApiModal(){ document.getElementById('apiModal').classList.add('active'); if(state.apiKeys.hf) document.getElementById('hfKey').value=state.apiKeys.hf; }
+function closeApiModal(){ document.getElementById('apiModal').classList.remove('active'); }
+function saveApiKeys(){
+  var hf=(document.getElementById('hfKey').value||'').trim();
+  state.apiKeys.hf=hf;
+  try{ if(hf) localStorage.setItem('hf_token',hf); else localStorage.removeItem('hf_token'); }catch(e){}
+  updateApiBadge();
+  if(hf){ toast('ok','✅ Token salvato','Hugging Face attivo — puoi generare contenuti'); }
+  else{ toast('err','Token mancante','Inserisci il token HF per generare contenuti'); }
+  closeApiModal();
+}
+
+// ============================================================
+// MEDIA
+// ============================================================
+function triggerUpload(){ document.getElementById('fileInput').click(); }
+function handleFile(e){
+  var file=e.target.files[0]; if(!file) return;
+  var url=URL.createObjectURL(file);
+  document.getElementById('uploadZone').style.display='none';
+  if(file.type.indexOf('video/')===0){
+    var v=document.getElementById('videoPreview'); v.src=url; v.style.display='block'; document.getElementById('imagePreview').style.display='none';
+    v.onloadedmetadata=function(){state.duration=v.duration; updateTimeDisplay(); addTrackClip('trackVideo',file.name,'cv',0,100); toast('ok','Video caricato',file.name);};
+  } else {
+    var i=document.getElementById('imagePreview'); i.src=url; i.style.display='block'; document.getElementById('videoPreview').style.display='none';
+    state.duration=5; addTrackClip('trackVideo',file.name,'cv',0,100); toast('ok','Immagine caricata',file.name);
+  }
+}
+function handleAudio(e){ var file=e.target.files[0]; if(!file) return; state.audioFile=file; document.getElementById('audioName').textContent='✓ '+file.name; document.getElementById('audioName').style.display='block'; document.getElementById('audioDropText').textContent='Audio caricato'; addTrackClip('trackAudio',file.name,'ca',0,100); toast('ok','Audio caricato',file.name); }
+
+function togglePlay(){ var v=document.getElementById('videoPreview'); var btn=document.getElementById('playBtn'); if(v.src&&v.style.display==='block'){if(v.paused){v.play();btn.textContent='⏸';}else{v.pause();btn.textContent='▶';}}else{toast('inf','Nessun video','Carica un video prima');} }
+function skipBack(){ var v=document.getElementById('videoPreview'); if(v.src) v.currentTime=Math.max(0,v.currentTime-5); }
+function skipForward(){ var v=document.getElementById('videoPreview'); if(v.src) v.currentTime=Math.min(v.duration,v.currentTime+5); }
+function onVideoTimeUpdate(){ var v=document.getElementById('videoPreview'); updateTimeDisplay(); if(v.duration) document.getElementById('tlProgress').style.left=(v.currentTime/v.duration*100)+'%'; }
+function onVideoEnded(){ document.getElementById('playBtn').textContent='▶'; }
+function updateTimeDisplay(){ var v=document.getElementById('videoPreview'); document.getElementById('timeDisplay').textContent=fmt(v.currentTime||0)+' / '+fmt(state.duration||0); }
+function fmt(s){ if(!s||isNaN(s)) return '00:00'; var m=Math.floor(s/60); var sec=Math.floor(s%60); return pad(m)+':'+pad(sec); }
+function pad(n){ return n.toString().padStart(2,'0'); }
+function addTrackClip(tid,name,cls,start,width){ var t=document.getElementById(tid); var ex=t.querySelector('.tclip'); if(ex) ex.remove(); var c=document.createElement('div'); c.className='tclip '+cls; c.style.left=start+'%'; c.style.width=width+'%'; c.textContent=name; c.title=name; t.appendChild(c); }
+
+// VOICE
+function selVoice(el,m){
+  document.querySelectorAll('.vc').forEach(function(c){c.classList.remove('active')}); el.classList.add('active');
+  document.getElementById('grpTTS').classList.toggle('hidden',m!=='tts');
+  document.getElementById('grpUpload').classList.toggle('hidden',m!=='upload');
+  document.getElementById('grpRecord').classList.toggle('hidden',m!=='record');
+}
+function onTTSInput(){ document.getElementById('ttsBtn').disabled=document.getElementById('ttsText').value.trim().length===0; }
+function generateTTS(){
+  var text=document.getElementById('ttsText').value.trim(); if(!text) return;
+  if(!window.speechSynthesis){toast('err','Errore','TTS non supportato');return;}
+  var btn=document.getElementById('ttsBtn'); btn.disabled=true; btn.innerHTML='⏳ Generando...';
+  var u=new SpeechSynthesisUtterance(text); u.lang=document.getElementById('ttsLang').value;
+  u.onend=function(){ addTrackClip('trackAudio','TTS: '+text.substring(0,20),'ca',0,100); toast('ok','TTS generato',''); btn.disabled=false; btn.innerHTML='🎙️ Genera Voce TTS'; };
+  u.onerror=function(){ toast('err','Errore TTS',''); btn.disabled=false; btn.innerHTML='🎙️ Genera Voce TTS'; };
+  window.speechSynthesis.speak(u);
+}
+
+function toggleRec(){
+  var btn=document.getElementById('recBtn'); var status=document.getElementById('recStatus');
+  if(!state.isRecording){
+    navigator.mediaDevices.getUserMedia({audio:true}).then(function(stream){
+      state.mediaRecorder=new MediaRecorder(stream); state.recordedChunks=[];
+      state.mediaRecorder.ondataavailable=function(e){if(e.data.size>0) state.recordedChunks.push(e.data);};
+      state.mediaRecorder.onstop=function(){ var blob=new Blob(state.recordedChunks,{type:'audio/webm'}); state.audioFile=new File([blob],'recording.webm',{type:'audio/webm'}); addTrackClip('trackAudio','🎤 Registrazione','ca',0,100); toast('ok','Registrazione completata',''); btn.innerHTML='🔴 Inizia Registrazione'; btn.style.background=''; status.textContent=''; state.isRecording=false; };
+      state.mediaRecorder.start(); state.isRecording=true; btn.innerHTML='⏹ Ferma'; btn.style.background='var(--err)'; status.textContent='🔴 In registrazione...'; toast('inf','Registrazione','Parla nel microfono');
+    }).catch(function(){toast('err','Errore','Permesso microfono negato');});
+  } else { state.mediaRecorder.stop(); state.mediaRecorder.stream.getTracks().forEach(function(t){t.stop();}); }
+}
+
+// ============================================================
+// AI GENERATION
+// ============================================================
+function switchAIPanel(panel){
+  document.querySelectorAll('.ai-panel').forEach(function(p){p.classList.remove('active')});
+  var id='aiPanel'+panel.charAt(0).toUpperCase()+panel.slice(1);
+  var t=document.getElementById(id); if(t) t.classList.add('active');
+  document.querySelectorAll('.aitab').forEach(function(t){t.classList.remove('active')});
+  var at=document.getElementById('aiTab'+panel.charAt(0).toUpperCase()+panel.slice(1)); if(at) at.classList.add('active');
+  // Scrolla al pannello destro
+  var rp=document.getElementById('rightPanel'); if(rp) rp.scrollTop=0;
+}
+
+function sleep(ms){ return new Promise(function(r){setTimeout(r,ms);}); }
+
+async function fetchWithRetry(url,opts,max,delay){
+  max=max||3; delay=delay||20000;
+  for(var i=0;i<max;i++){
+    var res=await fetch(url,opts);
+    var ct=res.headers.get('content-type')||'';
+    if(ct.indexOf('application/json')!==-1){
+      var d=await res.json();
+      if((res.status===503||d.status==='loading')&&i<max-1){ toast('inf','Modello in avvio...','Riprovo tra '+(delay/1000)+'s ('+(i+1)+'/'+max+')'); await sleep(delay); continue; }
+      return d;
+    } else { return {blob:await res.blob(),ok:res.ok}; }
+  }
+  throw new Error('Il modello non risponde — riprova tra qualche minuto');
+}
+
+function base64ToBlob(b64,ct){ var bin=atob(b64); var bytes=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) bytes[i]=bin.charCodeAt(i); return new Blob([bytes],{type:ct}); }
+
+function showMainPreview(url,type){
+  var v=document.getElementById('videoPreview'); var img=document.getElementById('imagePreview'); var uz=document.getElementById('uploadZone');
+  if(uz) uz.style.display='none';
+  if(type==='video'){ v.src=url; v.style.display='block'; img.style.display='none'; }
+  else{ img.src=url; img.style.display='block'; v.style.display='none'; }
+}
+
+// IMMAGINI
+async function generateImage(){
+  var allowed=await checkCreditsOrBlock('immagini'); if(!allowed) return;
+  var prompt=(document.getElementById('imgPrompt')?.value||'').trim();
+  var style=(document.getElementById('imgStyle')?.value||'realistic');
+  var hfToken=state.apiKeys.hf;
+  if(!prompt){toast('err','Prompt mancante','Descrivi l\'immagine che vuoi creare');return;}
+  if(!hfToken){toast('err','Token HF mancante','Clicca su 🔑 API e inserisci il tuo token Hugging Face');return;}
+  var styleMap={realistic:'photorealistic, professional photo, sharp details, 8K',cinematic:'cinematic photography, film grain, dramatic lighting',digital:'digital art, concept art, artstation',otros:'high quality, detailed'};
+  var fullPrompt=prompt+', '+(styleMap[style]||'high quality');
+  var btn=document.querySelector('[onclick="generateImage()"]'); if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando...';}
+  toast('inf','🎨 FLUX.1-schnell','Generazione immagine in corso...');
+  try{
+    var res=await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',{method:'POST',headers:{'Authorization':'Bearer '+hfToken,'Content-Type':'application/json','X-Wait-For-Model':'true'},body:JSON.stringify({inputs:fullPrompt,parameters:{num_inference_steps:4,guidance_scale:0}})});
+    if(!res.ok){ if(res.status===503){toast('inf','Modello in avvio','Riprova tra 20 secondi');return;} throw new Error(await res.text()); }
+    var blob=await res.blob(); var url=URL.createObjectURL(blob);
+    var box=document.getElementById('imgPreviewBox'); if(box) box.innerHTML='<img src="'+url+'" style="width:100%;border-radius:8px">';
+    showMainPreview(url,'image'); addToGallery(url,'image',prompt); await sbDeductCredit();
+    toast('ok','✅ Immagine generata!','FLUX.1-schnell');
+  }catch(e){toast('err','Errore immagine',e.message);}
+  finally{if(btn){btn.disabled=false;btn.innerHTML='✨ Genera Immagine';}}
+}
+
+// VIDEO
+async function generateVideo(){
+  var allowed=await checkCreditsOrBlock('video'); if(!allowed) return;
+  var char=(document.getElementById('videoCharPrompt')?.value||'').trim();
+  var dialog=(document.getElementById('videoDialogPrompt')?.value||'').trim();
+  var env=(document.getElementById('videoEnvPrompt')?.value||'').trim();
+  var style=(document.getElementById('videoStyle')?.value||'standard');
+  if(!char&&!env){toast('err','Prompt mancante','Descrivi almeno il personaggio o l\'ambiente');return;}
+  var quality=style==='cinematic'?'cinematic':'standard';
+  var modelLabel=quality==='cinematic'?'LTX-Video (cinematografico)':'CogVideoX-2B (standard)';
+  var btn=document.getElementById('genVideoBtn'); if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando...';}
+  toast('inf','🎬 '+modelLabel,quality==='cinematic'?'~60-90 sec':'~30-50 sec');
+  try{
+    var parts=[char,dialog,env].filter(Boolean); var fullPrompt=parts.join(', ')+', cinematic lighting, high quality, smooth motion';
+    var data=await fetchWithRetry('/api/hf-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:fullPrompt,quality:quality})});
+    if(!data||data.status!=='succeeded'||!data.video_base64) throw new Error(data?.error||data?.message||'Generazione fallita');
+    var vblob=base64ToBlob(data.video_base64,data.content_type||'video/mp4'); var vurl=URL.createObjectURL(vblob);
+    var box=document.getElementById('videoPreviewBox'); if(box) box.innerHTML='<video src="'+vurl+'" controls style="width:100%;border-radius:8px"></video>';
+    showMainPreview(vurl,'video'); addToGallery(vurl,'video',fullPrompt); addTrackClip('trackVideo','AI Video','cv',0,100); await sbDeductCredit();
+    toast('ok','✅ Video generato!',data.model_used||modelLabel);
+  }catch(e){toast('err','Errore video',e.message);}
+  finally{if(btn){btn.disabled=false;btn.innerHTML='🎬 Genera Video';}}
+}
+
+// AVATAR
+async function generateAvatar(){
+  var allowed=await checkCreditsOrBlock('avatar'); if(!allowed) return;
+  var prompt=(document.getElementById('avatarPrompt')?.value||'').trim();
+  var hfToken=state.apiKeys.hf;
+  if(!prompt){toast('err','Descrizione mancante','Descrivi il tuo avatar');return;}
+  if(!hfToken){toast('err','Token HF mancante','Clicca su 🔑 API e inserisci il tuo token');return;}
+  var full='Professional portrait photo of '+prompt+', photorealistic, sharp eyes, perfect face, studio lighting, 8K, looking at camera';
+  var btn=document.querySelector('[onclick="generateAvatar()"]'); if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando...';}
+  try{
+    var res=await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',{method:'POST',headers:{'Authorization':'Bearer '+hfToken,'Content-Type':'application/json','X-Wait-For-Model':'true'},body:JSON.stringify({inputs:full,parameters:{num_inference_steps:4,guidance_scale:0}})});
+    if(!res.ok) throw new Error(await res.text());
+    var blob=await res.blob(); var url=URL.createObjectURL(blob);
+    showMainPreview(url,'image'); addToGallery(url,'image','Avatar: '+prompt); await sbDeductCredit();
+    toast('ok','✅ Avatar generato!','Ora puoi usarlo con il LipSync');
+  }catch(e){toast('err','Errore avatar',e.message);}
+  finally{if(btn){btn.disabled=false;btn.innerHTML='✨ Genera Avatar';}}
+}
+
+// SCENE
+async function generateScene(){
+  var hfToken=state.apiKeys.hf; if(!hfToken){toast('err','Token HF mancante','Clicca su 🔑 API');return;}
+  var sceneMap={studio:'Modern TV studio interior, blue LED screens, professional lighting',nature:'Beautiful forest, sunlight through trees, cinematic',city:'Modern city skyline at night, neon lights',home:'Cozy modern living room, warm lighting',custom:(document.getElementById('scenePrompt')?.value||'Modern interior')};
+  var prompt=(sceneMap[state.currentScene]||'Professional setting')+', photorealistic, 8K, wide angle, no people';
+  var btn=document.querySelector('[onclick="generateScene()"]'); if(btn){btn.disabled=true;btn.innerHTML='⏳ Generando...';}
+  try{
+    var res=await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell',{method:'POST',headers:{'Authorization':'Bearer '+hfToken,'Content-Type':'application/json','X-Wait-For-Model':'true'},body:JSON.stringify({inputs:prompt,parameters:{num_inference_steps:4,guidance_scale:0}})});
+    if(!res.ok) throw new Error(await res.text());
+    var blob=await res.blob(); var url=URL.createObjectURL(blob);
+    showMainPreview(url,'image'); addToGallery(url,'image','Scena: '+state.currentScene);
+    toast('ok','✅ Scena generata!','');
+  }catch(e){toast('err','Errore scena',e.message);}
+  finally{if(btn){btn.disabled=false;btn.innerHTML='🌆 Genera Scena';}}
+}
+
+// LIPSYNC
+async function runLipSync(){
+  var allowed=await checkCreditsOrBlock('lipsync'); if(!allowed) return;
+  var v=document.getElementById('videoPreview'); var text=(document.getElementById('ttsText')?.value||'').trim();
+  if((!v?.src||v.style.display==='none')&&(!document.getElementById('imagePreview')?.src)){toast('err','Contenuto mancante','Carica prima un video o genera un avatar');return;}
+  if(!text){toast('err','Testo mancante','Scrivi il testo nella sezione TTS qui sopra');return;}
+  toast('inf','👄 LipSync','Elaborazione in corso ~45 sec');
+  try{
+    var data=await fetchWithRetry('/api/hf-video',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:text+', person speaking clearly, realistic lip movement, professional video',quality:'cinematic'})});
+    if(!data||data.status!=='succeeded'||!data.video_base64) throw new Error(data?.error||'LipSync fallito');
+    var blob=base64ToBlob(data.video_base64,'video/mp4'); var url=URL.createObjectURL(blob);
+    showMainPreview(url,'video'); addToGallery(url,'video','LipSync: '+text.substring(0,50)); await sbDeductCredit();
+    toast('ok','✅ LipSync completato!','');
+  }catch(e){toast('err','Errore LipSync',e.message);}
+}
+
+// EXPORT
+function exportContent(){
+  var v=document.getElementById('videoPreview'); var img=document.getElementById('imagePreview');
+  var url=null; var ext='.mp4';
+  if(v&&v.src&&v.style.display!=='none'){url=v.src;}
+  else if(img&&img.src&&img.style.display!=='none'){url=img.src;ext='.jpg';}
+  if(!url){toast('err','Nessun contenuto','Genera o carica un video/immagine prima');return;}
+  var a=document.createElement('a'); a.href=url; a.download='aivideo_'+Date.now()+ext; a.click();
+  toast('ok','⬇ Download avviato','');
+}
+
+// AVATAR/SCENE SELECTORS
+function selAvatar(el,type){ document.querySelectorAll('.av-card').forEach(function(c){c.classList.remove('active')}); el.classList.add('active'); state.currentAvatar=type; }
+function handleAvatarUpload(e){ var file=e.target.files[0]; if(!file) return; showMainPreview(URL.createObjectURL(file),'image'); toast('ok','Avatar caricato',file.name); }
+function selScene(el,type){ document.querySelectorAll('.sc-card').forEach(function(c){c.classList.remove('active')}); el.classList.add('active'); state.currentScene=type; }
+
+// ============================================================
+// GALLERY
+// ============================================================
+function addToGallery(url,type,prompt){ state.generatedContent.unshift({id:Date.now(),url:url,type:type,prompt:prompt}); }
+function loadGallery(){
+  var grid=document.getElementById('galleryGrid'); if(!grid) return;
+  if(!state.generatedContent.length){grid.innerHTML='<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--txt3)"><div style="font-size:48px;margin-bottom:12px">🎨</div><div>Nessun contenuto generato</div></div>';return;}
+  grid.innerHTML=buildGallery(state.generatedContent);
+}
+function filterGallery(type){ var items=type==='all'?state.generatedContent:state.generatedContent.filter(function(i){return i.type===type;}); document.getElementById('galleryGrid').innerHTML=items.length?buildGallery(items):'<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--txt3)">Nessun risultato</div>'; }
+function buildGallery(items){ return items.map(function(item){ return '<div class="gi"><'+(item.type==='video'?'video src="'+item.url+'" muted loop onmouseover="this.play()" onmouseout="this.pause()"':'img src="'+item.url+'" loading="lazy')+'" ><div class="gi-ov"><div class="ga" onclick="downloadGI('+item.id+')" title="Scarica">⬇</div><div class="ga" onclick="deleteGI('+item.id+')" title="Elimina">🗑</div></div></div>'; }).join(''); }
+function downloadGI(id){ var item=state.generatedContent.find(function(i){return i.id===id;}); if(!item) return; var a=document.createElement('a'); a.href=item.url; a.download='aivideo_'+item.type+'_'+id+'.'+(item.type==='video'?'mp4':'png'); a.click(); }
+function deleteGI(id){ state.generatedContent=state.generatedContent.filter(function(i){return i.id!==id;}); loadGallery(); toast('inf','Eliminato',''); }
+
+// ============================================================
+// TEMPLATES
+// ============================================================
+var TEMPLATES={
+  news:{char:'Presentatore professionista, completo elegante, 35 anni',dialog:'Benvenuti al telegiornale. Oggi vi parliamo di...',env:'Studio TV con schermi LED blu e scrivania'},
+  tutorial:{char:'Insegnante simpatico, 30 anni, occhiali, maglione casual',dialog:'In questo tutorial impareremo passo passo...',env:'Scrivania con monitor, libreria sullo sfondo'},
+  promo:{char:'Venditore entusiasta, 40 anni, giacca blu, sorriso ampio',dialog:'Scopri la nostra offerta speciale! Solo per oggi...',env:'Sfondo colorato con grafiche dinamiche'},
+  vlog:{char:'Content creator giovane, 25 anni, stile casual, energico',dialog:'Ciao ragazzi! Oggi vi porto in questo posto fantastico...',env:'Camera con luci RGB, poster sul muro'},
+  product:{char:'Modello professionista, mani curate, espressione neutra',dialog:'Questo prodotto rivoluzionario cambierà la tua vita...',env:'Sfondo bianco minimale, tavolo di vetro'},
+  gaming:{char:'Gamer, 22 anni, cuffie, maglietta tech',dialog:'Ragazzi, oggi proviamo questo gioco assurdo!',env:'Gaming setup con LED RGB, monitor multipli'}
+};
+function loadTemplate(type){
+  document.getElementById('templateModal').classList.remove('active');
+  var t=TEMPLATES[type]; if(!t) return;
+  if(document.getElementById('videoCharPrompt')) document.getElementById('videoCharPrompt').value=t.char;
+  if(document.getElementById('videoDialogPrompt')) document.getElementById('videoDialogPrompt').value=t.dialog;
+  if(document.getElementById('videoEnvPrompt')) document.getElementById('videoEnvPrompt').value=t.env;
+  switchAIPanel('video');
+  toast('ok','🎨 Template caricato',type+' — premi Genera Video');
+}
+
+// Chiudi menu utente click fuori
+document.addEventListener('click',function(e){ if(!e.target.closest('.ubadge')&&!e.target.closest('.umenu')) document.getElementById('userMenu')?.classList.remove('active'); });
+document.addEventListener('click',function(e){ if(e.target.classList.contains('mbg')) e.target.classList.remove('active'); });
+
+// Drag & drop canvas
+document.addEventListener('DOMContentLoaded',function(){
+  var cw=document.getElementById('canvasWrapper'); if(!cw) return;
+  cw.addEventListener('dragover',function(e){e.preventDefault();document.getElementById('uploadZone').classList.add('dragover');});
+  cw.addEventListener('dragleave',function(){document.getElementById('uploadZone').classList.remove('dragover');});
+  cw.addEventListener('drop',function(e){e.preventDefault();document.getElementById('uploadZone').classList.remove('dragover');if(e.dataTransfer.files.length>0) handleFile({target:{files:[e.dataTransfer.files[0]]}});});
 });
 </script>
-
-<style>
-/* Template card — inline so it doesn't bloat style.css */
-.tpl-card {
-    aspect-ratio: 9/16;
-    background: var(--bg-tertiary);
-    border-radius: 12px;
-    cursor: pointer;
-    padding: 16px;
-    text-align: center;
-    border: 2px solid transparent;
-    transition: all 0.2s;
-}
-.tpl-card:hover { border-color: var(--accent); transform: translateY(-2px); }
-
-/* Fix: selVoice richiede id="grpTTS" (uppercase) */
-#grpTTS { /* già nascosto via .hidden */ }
-</style>
-
 </body>
 </html>
