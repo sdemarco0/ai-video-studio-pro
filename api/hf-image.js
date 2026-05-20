@@ -1,29 +1,38 @@
-export const config = { runtime: 'edge' };
+const fetch = require('node-fetch');
 
-export default async function handler(req) {
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  if (req.method !== 'POST') return res.status(405).json({ ok: false, error: 'Metodo non supportato' });
+
   const token = process.env.HF_API_TOKEN;
-  const origin = req.headers.get('origin') || '*';
-  const cors = {
-    'Access-Control-Allow-Origin': origin,
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type',
-  };
-  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
-  if (!token) return new Response(JSON.stringify({ ok: false, error: 'HF_API_TOKEN mancante su Vercel' }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } });
+  if (!token) return res.status(500).json({ ok: false, error: 'HF_API_TOKEN mancante su Vercel' });
+
+  const { prompt } = req.body;
+  if (!prompt) return res.status(400).json({ ok: false, error: 'prompt mancante' });
+
   try {
-    const { prompt } = await req.json();
-    if (!prompt) return new Response(JSON.stringify({ ok: false, error: 'prompt mancante' }), { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } });
     const hf = await fetch('https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json', 'X-Wait-For-Model': 'true' },
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'X-Wait-For-Model': 'true'
+      },
       body: JSON.stringify({ inputs: prompt, parameters: { num_inference_steps: 4, guidance_scale: 0 } })
     });
-    if (hf.status === 503) return new Response(JSON.stringify({ ok: false, status: 'loading', error: 'Modello in avvio' }), { status: 503, headers: { ...cors, 'Content-Type': 'application/json' } });
-    if (!hf.ok) return new Response(JSON.stringify({ ok: false, error: await hf.text() }), { status: hf.status, headers: { ...cors, 'Content-Type': 'application/json' } });
-    const buf = await hf.arrayBuffer();
-    const b64 = btoa(String.fromCharCode(...new Uint8Array(buf)));
-    return new Response(JSON.stringify({ ok: true, b64, ct: hf.headers.get('content-type') || 'image/jpeg' }), { status: 200, headers: { ...cors, 'Content-Type': 'application/json' } });
+
+    if (hf.status === 503) return res.status(503).json({ ok: false, status: 'loading', error: 'Modello in avvio' });
+    if (!hf.ok) return res.status(hf.status).json({ ok: false, error: await hf.text() });
+
+    const buf = await hf.buffer();
+    const b64 = buf.toString('base64');
+    const ct = hf.headers.get('content-type') || 'image/jpeg';
+    return res.status(200).json({ ok: true, b64, ct });
   } catch (e) {
-    return new Response(JSON.stringify({ ok: false, error: e.message }), { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } });
+    return res.status(500).json({ ok: false, error: e.message });
   }
-}
+};
