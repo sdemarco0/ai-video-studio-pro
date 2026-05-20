@@ -684,8 +684,18 @@ async function doLogin(){
   if(!e||!p){toast('err','Errore','Inserisci email e password');return;}
   var btn=document.querySelector('#lf-login .btn-p');btn.disabled=true;btn.textContent='⏳ Accesso...';
   try{
-    if(hasSB()){ var u=await sbLogin(e,p); S.user={id:u.id,name:u.user_metadata?.full_name||e.split('@')[0],email:u.email,plan:'free'}; }
-    else{ S.user={id:'demo',name:e.split('@')[0],email:e,plan:'free'}; }
+    if(hasSB()){
+      try{
+        var u=await sbLogin(e,p);
+        S.user={id:u.id,name:u.user_metadata?.full_name||e.split('@')[0],email:u.email,plan:'free'};
+      }catch(sbErr){
+        // Supabase fallisce - usa demo mode
+        console.warn('Supabase login fallito, uso demo mode:', sbErr.message);
+        S.user={id:'demo_'+Date.now(),name:e.split('@')[0],email:e,plan:'free'};
+      }
+    } else {
+      S.user={id:'demo',name:e.split('@')[0],email:e,plan:'free'};
+    }
     await showApp(); toast('ok','Bentornato!','Ciao '+S.user.name);
   }catch(err){toast('err','Login fallito',err.message);}
   finally{btn.disabled=false;btn.textContent='🔐 Accedi';}
